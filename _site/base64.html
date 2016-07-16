@@ -1,0 +1,249 @@
+<!--
+#include <stdio.h>
+void main()
+{
+    double world;
+    unsigned letter;
+    short stay;
+    long memories;
+    printf("I miss you.\n");
+}
+-->
+<!doctype html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <meta name="author" content="likebeta" />
+    <meta name="keywords" content="" />
+    <meta name="description" content="" />
+    <link rel="shortcut icon" href="/media/img/favicon.ico" />
+    <link rel="alternate" title="likebeta" type="application/atom+xml" href="http://feed.ixxoo.me" />
+    <link rel="stylesheet" type="text/css" href="/media/css/style.css" />
+    <link rel="stylesheet" href="/media/css/highlight.css" />
+    <title>Base64加密解密算法的C/C++代码实现</title>
+    <!--[if lt IE 9]>
+    <script src="//cdn.bootcss.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+    <![endif]-->
+    <script src="//cdn.bootcss.com/jquery/1.7.1/jquery.min.js"></script>
+    <script type="text/javascript" src="/media/js/base.js"></script>
+  </head>
+  <body>
+    <div id="clickload">假装异步加载中...</div>
+    <div id="wrap">
+                <div id="header">
+            <header id="blog_title">
+                <h1><a href="/">likebeta's Blog</a></h1>
+            </header>
+            <nav id="menu">
+                <ul class="header-nav">
+                    <li><a href="http://app.ixxoo.me" target="_blank">App</a></li>
+                    <li><a href="https://github.com/likebeta" target="_blank">Github</a></li>
+                    <li><a href="/read">Read</a></li>
+                    <li><a href="/photo">Photo</a></li>
+                    <li><a href="/about">About</a></li>
+                    <li><a href="http://feed.ixxoo.me" class="menu-rss" target="_blank"></a></li>
+                </ul>
+            </nav>
+            <div class="clear"></div>
+        </div>
+
+                <section id="content">
+            <article class="post">
+             <div class="date">
+              <span class="day">11</span>
+              <span class="month">Apr</span>
+              <span class="year">2013</span>
+             </div>
+             <header>
+              <h2><a href="/base64.html" title="Base64加密解密算法的C/C++代码实现">Base64加密解密算法的C/C++代码实现</a></h2>
+             </header>
+             <div class="con"><p>今天再次用到了base64编解码，以前看过，现在又有点陌生了，上网查了下，然后用c++实现了下，在此记录下，以备将来查用。</p>
+
+<h4 id="section">介绍</h4>
+
+<p><a href="http://baike.baidu.com/view/469071.htm">百度百科</a>和<a href="http://zh.wikipedia.org/wiki/Base64">维基百科</a>说的很清楚,我就不罗嗦了</p>
+
+<h4 id="section-1">用途</h4>
+
+<p>Base64算法不是为了防止内容被人破解而使用的算法， 因为破解Base64太容易了， 就是简单的字符替换。
+Base64还有个不好的地方，就是加密后， 长度会变成。
+那我们为何还要使用Base64 呢？因为Base64可以把乱七八糟的二进制转化为字符串，这个特性在很多地方很有用。</p>
+
+<!--more-->
+
+<h4 id="c">实现(c++)</h4>
+
+<div class="language-cpp highlighter-rouge"><pre class="highlight"><code><span class="c1">// Base64.h
+</span><span class="cp">#ifndef __BASE64_H__
+#define __BASE64_H__
+</span>
+<span class="cp">#include &lt;string&gt;
+</span><span class="k">using</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">;</span>
+
+<span class="k">class</span> <span class="nc">CBase64</span>
+<span class="p">{</span>
+<span class="k">public</span><span class="o">:</span>
+    <span class="k">static</span> <span class="kt">bool</span> <span class="n">Encode</span><span class="p">(</span><span class="k">const</span> <span class="n">string</span><span class="o">&amp;</span> <span class="n">strIn</span><span class="p">,</span><span class="n">string</span><span class="o">&amp;</span> <span class="n">strOut</span><span class="p">);</span>
+    <span class="k">static</span> <span class="kt">bool</span> <span class="n">Decode</span><span class="p">(</span><span class="k">const</span> <span class="n">string</span><span class="o">&amp;</span> <span class="n">strIn</span><span class="p">,</span><span class="n">string</span><span class="o">&amp;</span> <span class="n">strOut</span><span class="p">,</span><span class="kt">bool</span> <span class="n">fCheckInputValid</span> <span class="o">=</span> <span class="nb">false</span><span class="p">);</span>
+<span class="p">};</span>
+
+<span class="cp">#endif
+</span></code></pre>
+</div>
+
+<div class="language-cpp highlighter-rouge"><pre class="highlight"><code><span class="c1">// Base64.cpp
+</span><span class="cp">#include "base64.h"
+</span>
+<span class="k">static</span> <span class="k">const</span> <span class="kt">char</span> <span class="n">encode_map</span><span class="p">[]</span> <span class="o">=</span> <span class="s">"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"</span><span class="p">;</span>
+<span class="k">static</span> <span class="kt">char</span> <span class="n">decode_map</span><span class="p">[</span><span class="mi">256</span><span class="p">];</span>
+<span class="k">static</span> <span class="kt">void</span> <span class="nf">initBase64DecodeMap</span><span class="p">()</span>
+<span class="p">{</span>
+    <span class="n">memset</span><span class="p">(</span><span class="n">decode_map</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="k">sizeof</span><span class="p">(</span><span class="n">decode_map</span><span class="p">));</span>
+    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="sc">'A'</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;=</span> <span class="sc">'Z'</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="n">decode_map</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span> <span class="o">+</span> <span class="p">(</span><span class="n">i</span> <span class="o">-</span> <span class="sc">'A'</span><span class="p">);</span>
+    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="sc">'a'</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;=</span> <span class="sc">'z'</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="n">decode_map</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mi">26</span> <span class="o">+</span> <span class="p">(</span><span class="n">i</span> <span class="o">-</span> <span class="sc">'a'</span><span class="p">);</span>
+    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="sc">'0'</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;=</span> <span class="sc">'9'</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="n">decode_map</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mi">52</span> <span class="o">+</span> <span class="p">(</span><span class="n">i</span> <span class="o">-</span> <span class="sc">'0'</span><span class="p">);</span>
+    <span class="n">decode_map</span><span class="p">[(</span><span class="kt">unsigned</span> <span class="kt">char</span><span class="p">)</span><span class="sc">'+'</span><span class="p">]</span> <span class="o">=</span> <span class="mi">62</span><span class="p">;</span>
+    <span class="n">decode_map</span><span class="p">[(</span><span class="kt">unsigned</span> <span class="kt">char</span><span class="p">)</span><span class="sc">'/'</span><span class="p">]</span> <span class="o">=</span> <span class="mi">63</span><span class="p">;</span>
+    <span class="n">decode_map</span><span class="p">[(</span><span class="kt">unsigned</span> <span class="kt">char</span><span class="p">)</span><span class="sc">'='</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">bool</span> <span class="n">CBase64</span><span class="o">::</span><span class="n">Encode</span><span class="p">(</span><span class="k">const</span> <span class="n">string</span><span class="o">&amp;</span> <span class="n">strIn</span><span class="p">,</span><span class="n">string</span><span class="o">&amp;</span> <span class="n">strOut</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="kt">size_t</span> <span class="n">nInLen</span> <span class="o">=</span> <span class="n">strIn</span><span class="p">.</span><span class="n">length</span><span class="p">();</span>
+    <span class="kt">size_t</span> <span class="n">numOrig24BitValues</span> <span class="o">=</span> <span class="n">nInLen</span><span class="o">/</span><span class="mi">3</span><span class="p">;</span>
+    <span class="kt">bool</span> <span class="n">havePadding</span> <span class="o">=</span> <span class="p">(</span><span class="n">nInLen</span> <span class="o">!=</span> <span class="n">numOrig24BitValues</span><span class="o">*</span><span class="mi">3</span><span class="p">);</span>
+    <span class="kt">bool</span> <span class="n">havePadding2</span> <span class="o">=</span> <span class="p">(</span><span class="n">nInLen</span> <span class="o">==</span> <span class="n">numOrig24BitValues</span><span class="o">*</span><span class="mi">3</span> <span class="o">+</span> <span class="mi">1</span><span class="p">);</span>
+    <span class="kt">size_t</span> <span class="n">numResultBytes</span> <span class="o">=</span> <span class="mi">4</span><span class="o">*</span><span class="p">(</span><span class="n">numOrig24BitValues</span> <span class="o">+</span> <span class="n">havePadding</span><span class="p">);</span>
+    <span class="n">strOut</span><span class="p">.</span><span class="n">clear</span><span class="p">();</span>
+    <span class="k">for</span> <span class="p">(</span><span class="kt">size_t</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">numOrig24BitValues</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="n">strOut</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">encode_map</span><span class="p">[(</span><span class="n">strIn</span><span class="p">[</span><span class="mi">3</span><span class="o">*</span><span class="n">i</span><span class="p">]</span> <span class="o">&gt;&gt;</span> <span class="mi">2</span><span class="p">)</span> <span class="o">&amp;</span> <span class="mh">0x3F</span><span class="p">]);</span>
+        <span class="n">strOut</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">encode_map</span><span class="p">[((</span><span class="n">strIn</span><span class="p">[</span><span class="mi">3</span><span class="o">*</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="mi">4</span><span class="p">)</span> <span class="o">&amp;</span> <span class="mh">0x30</span><span class="p">)</span> <span class="o">|</span> <span class="p">((</span><span class="n">strIn</span><span class="p">[</span><span class="mi">3</span><span class="o">*</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;&gt;</span> <span class="mi">4</span><span class="p">)</span> <span class="o">&amp;</span> <span class="mh">0x0F</span><span class="p">)]);</span>
+        <span class="n">strOut</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">encode_map</span><span class="p">[((</span><span class="n">strIn</span><span class="p">[</span><span class="mi">3</span><span class="o">*</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="mi">2</span><span class="p">)</span> <span class="o">&amp;</span> <span class="mh">0x3C</span><span class="p">)</span> <span class="o">|</span> <span class="p">((</span><span class="n">strIn</span><span class="p">[</span><span class="mi">3</span><span class="o">*</span><span class="n">i</span><span class="o">+</span><span class="mi">2</span><span class="p">]</span> <span class="o">&gt;&gt;</span> <span class="mi">6</span><span class="p">)</span> <span class="o">&amp;</span> <span class="mh">0x03</span><span class="p">)]);</span>
+        <span class="n">strOut</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">encode_map</span><span class="p">[</span><span class="n">strIn</span><span class="p">[</span><span class="mi">3</span><span class="o">*</span><span class="n">i</span><span class="o">+</span><span class="mi">2</span><span class="p">]</span> <span class="o">&amp;</span> <span class="mh">0x3F</span><span class="p">]);</span>
+
+    <span class="p">}</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">havePadding</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="kt">size_t</span> <span class="n">i</span> <span class="o">=</span> <span class="n">numOrig24BitValues</span><span class="p">;</span>
+        <span class="n">strOut</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">encode_map</span><span class="p">[(</span><span class="n">strIn</span><span class="p">[</span><span class="mi">3</span><span class="o">*</span><span class="n">i</span><span class="p">]</span> <span class="o">&gt;&gt;</span> <span class="mi">2</span><span class="p">)</span> <span class="o">&amp;</span> <span class="mh">0x3F</span><span class="p">]);</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">havePadding2</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="n">strOut</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">encode_map</span><span class="p">[((</span><span class="n">strIn</span><span class="p">[</span><span class="mi">3</span><span class="o">*</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="mi">4</span><span class="p">)</span> <span class="o">&amp;</span> <span class="mh">0x30</span><span class="p">)</span> <span class="o">|</span> <span class="p">((</span><span class="n">strIn</span><span class="p">[</span><span class="mi">3</span><span class="o">*</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;&gt;</span> <span class="mi">4</span><span class="p">)</span> <span class="o">&amp;</span> <span class="mh">0x0F</span><span class="p">)]);</span>
+            <span class="n">strOut</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="sc">'='</span><span class="p">);</span>
+        <span class="p">}</span>
+        <span class="k">else</span>
+        <span class="p">{</span>
+            <span class="n">strOut</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">encode_map</span><span class="p">[((</span><span class="n">strIn</span><span class="p">[</span><span class="mi">3</span><span class="o">*</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="mi">4</span><span class="p">)</span> <span class="o">&amp;</span> <span class="mh">0x30</span><span class="p">)</span> <span class="o">|</span> <span class="p">((</span><span class="n">strIn</span><span class="p">[</span><span class="mi">3</span><span class="o">*</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;&gt;</span> <span class="mi">4</span><span class="p">)</span> <span class="o">&amp;</span> <span class="mh">0x0F</span><span class="p">)]);</span>
+            <span class="n">strOut</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">encode_map</span><span class="p">[((</span><span class="n">strIn</span><span class="p">[</span><span class="mi">3</span><span class="o">*</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="mi">2</span><span class="p">)</span> <span class="o">&amp;</span> <span class="mh">0x3C</span><span class="p">)</span> <span class="o">|</span> <span class="p">((</span><span class="n">strIn</span><span class="p">[</span><span class="mi">3</span><span class="o">*</span><span class="n">i</span><span class="o">+</span><span class="mi">2</span><span class="p">]</span> <span class="o">&gt;&gt;</span> <span class="mi">6</span><span class="p">)</span> <span class="o">&amp;</span> <span class="mh">0x03</span><span class="p">)]);</span>
+        <span class="p">}</span>
+        <span class="n">strOut</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="sc">'='</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="k">return</span> <span class="nb">true</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">bool</span> <span class="n">CBase64</span><span class="o">::</span><span class="n">Decode</span><span class="p">(</span><span class="k">const</span> <span class="n">string</span><span class="o">&amp;</span> <span class="n">strIn</span><span class="p">,</span><span class="n">string</span><span class="o">&amp;</span> <span class="n">strOut</span><span class="p">,</span><span class="kt">bool</span> <span class="n">fCheckInputValid</span><span class="cm">/* = false*/</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="kt">size_t</span> <span class="n">nInlen</span> <span class="o">=</span> <span class="n">strIn</span><span class="p">.</span><span class="n">length</span><span class="p">();</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">nInlen</span> <span class="o">&lt;</span> <span class="mi">4</span> <span class="o">||</span> <span class="p">(</span><span class="n">nInlen</span> <span class="o">%</span> <span class="mi">4</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="k">return</span> <span class="nb">false</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">static</span> <span class="kt">bool</span> <span class="n">bInit</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">bInit</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="n">initBase64DecodeMap</span><span class="p">();</span>
+        <span class="n">bInit</span> <span class="o">=</span> <span class="nb">true</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">fCheckInputValid</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="k">for</span> <span class="p">(</span><span class="kt">size_t</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">nInlen</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">decode_map</span><span class="p">[(</span><span class="kt">unsigned</span> <span class="kt">char</span><span class="p">)</span><span class="n">strIn</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+            <span class="p">{</span>
+                <span class="k">return</span> <span class="nb">false</span><span class="p">;</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+    <span class="kt">size_t</span> <span class="n">nOutLen</span> <span class="o">=</span> <span class="p">(</span><span class="n">nInlen</span> <span class="o">*</span> <span class="mi">3</span><span class="p">)</span> <span class="o">/</span> <span class="mi">4</span><span class="p">;</span>
+    <span class="n">string</span> <span class="n">strTmpOut</span><span class="p">;</span>
+    <span class="n">strTmpOut</span><span class="p">.</span><span class="n">resize</span><span class="p">(</span><span class="n">nOutLen</span><span class="p">);</span>
+    <span class="kt">size_t</span> <span class="n">nLoopLen</span> <span class="o">=</span> <span class="n">nOutLen</span> <span class="o">/</span> <span class="mi">3</span><span class="p">;</span>
+    <span class="k">for</span> <span class="p">(</span><span class="kt">size_t</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">nLoopLen</span><span class="p">;</span><span class="o">++</span><span class="n">i</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="n">strTmpOut</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="p">((</span><span class="n">decode_map</span><span class="p">[</span><span class="n">strIn</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="mi">4</span><span class="p">]]</span> <span class="o">&lt;&lt;</span> <span class="mi">2</span><span class="p">)</span> <span class="o">&amp;</span> <span class="mh">0xFC</span><span class="p">)</span> <span class="o">|</span> <span class="p">((</span><span class="n">decode_map</span><span class="p">[</span><span class="n">strIn</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="mi">4</span><span class="o">+</span><span class="mi">1</span><span class="p">]]</span> <span class="o">&gt;&gt;</span> <span class="mi">4</span><span class="p">)</span> <span class="o">&amp;</span> <span class="mh">0x03</span><span class="p">);</span>
+        <span class="n">strTmpOut</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">((</span><span class="n">decode_map</span><span class="p">[</span><span class="n">strIn</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="mi">4</span><span class="o">+</span><span class="mi">1</span><span class="p">]]</span> <span class="o">&lt;&lt;</span> <span class="mi">4</span><span class="p">)</span> <span class="o">&amp;</span> <span class="mh">0xF0</span><span class="p">)</span> <span class="o">|</span> <span class="p">((</span><span class="n">decode_map</span><span class="p">[</span><span class="n">strIn</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="mi">4</span><span class="o">+</span><span class="mi">2</span><span class="p">]]</span> <span class="o">&gt;&gt;</span> <span class="mi">2</span><span class="p">)</span> <span class="o">&amp;</span> <span class="mh">0x0F</span><span class="p">);</span>
+        <span class="n">strTmpOut</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="p">((</span><span class="n">decode_map</span><span class="p">[</span><span class="n">strIn</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="mi">4</span><span class="o">+</span><span class="mi">2</span><span class="p">]]</span> <span class="o">&lt;&lt;</span> <span class="mi">6</span><span class="p">)</span> <span class="o">&amp;</span> <span class="mh">0xC0</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">decode_map</span><span class="p">[</span><span class="n">strIn</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="mi">4</span><span class="o">+</span><span class="mi">3</span><span class="p">]]</span> <span class="o">&amp;</span> <span class="mh">0x3F</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">strIn</span><span class="p">[</span><span class="n">nInlen</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="sc">'='</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="n">nOutLen</span><span class="o">--</span><span class="p">;</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">strIn</span><span class="p">[</span><span class="n">nInlen</span> <span class="o">-</span> <span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="sc">'='</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="n">nOutLen</span><span class="o">--</span><span class="p">;</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+    <span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">pData</span> <span class="o">=</span> <span class="n">strTmpOut</span><span class="p">.</span><span class="n">data</span><span class="p">();</span>
+    <span class="n">strOut</span><span class="p">.</span><span class="n">clear</span><span class="p">();</span>
+    <span class="n">strOut</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="n">pData</span><span class="p">,</span><span class="n">pData</span> <span class="o">+</span> <span class="n">nOutLen</span><span class="p">);</span>
+    <span class="k">return</span> <span class="nb">true</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre>
+</div>
+
+<h4 id="section-2">获取</h4>
+
+<p>获取文件及更新：<a href="https://github.com/likebeta/classlib/tree/master/cpp/base64">Github</a></p>
+
+<p>PS: 在电子邮件中，根据RFC 822规定，每76个字符，还需要加上一个回车换行。这个是MIME中的规定，base64只是一种编码格式，并不是所有的应用都需要遵守这个原则。</p>
+
+</div>
+             <div class="prev_and_next">
+                
+                <div><strong>上一篇： <a href="/start-blog.html" title="推倒重来，开始写blog">推倒重来，开始写blog</a></strong></div>
+                
+                
+                <div><strong>上一篇： <a href="/linux-file-permission.html" title="Linux 文件权限">Linux 文件权限</a></strong></div>
+                
+             </div>
+             <div class="postunder"><div id="comments">
+        <div id="disqus_thread"></div>
+    <script type="text/javascript">
+        /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+        var disqus_shortname = 'ixxoo'; // required: replace example with your forum shortname
+
+        /* * * DON'T EDIT BELOW THIS LINE * * */
+        (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    <a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+
+</div></div>
+            </article>
+        </section>
+        <div class="clear"></div>
+
+                <footer id="footer">
+            <div class="foot">
+                <a id="gotop" href="javascript:void(0);" onclick="return false;">TOP</a>
+                <div id="copyright">Copyright &copy; 2016 <a href="https://www.ixxoo.me" target="_blank">likebeta</a>, All Rights Reserved, Power by <a href="https://github.com/likebeta" target="_blank">Github Pages</a> and <a href="https://github.com/mojombo/jekyll" target="_blank">Jekyll</a></div>
+            </div>
+            <div id="statistics" style="display:none">
+    <script type="text/javascript" src="//s20.cnzz.com/stat.php?id=5221832&web_id=5221832"></script>
+</div>
+        </footer>
+
+    </div>
+  <script type="text/javascript" color="255,0,0" opacity="0.3" count="99" src="/media/js/canvas-nest.min.js"></script>
+  </body>
+</html>

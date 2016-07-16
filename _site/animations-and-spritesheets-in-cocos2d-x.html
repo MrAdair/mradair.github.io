@@ -1,0 +1,822 @@
+<!--
+#include <stdio.h>
+void main()
+{
+    double world;
+    unsigned letter;
+    short stay;
+    long memories;
+    printf("I miss you.\n");
+}
+-->
+<!doctype html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <meta name="author" content="likebeta" />
+    <meta name="keywords" content="" />
+    <meta name="description" content="" />
+    <link rel="shortcut icon" href="/media/img/favicon.ico" />
+    <link rel="alternate" title="likebeta" type="application/atom+xml" href="http://feed.ixxoo.me" />
+    <link rel="stylesheet" type="text/css" href="/media/css/style.css" />
+    <link rel="stylesheet" href="/media/css/highlight.css" />
+    <title>在Cocos2d-x v3中使用帧动画</title>
+    <!--[if lt IE 9]>
+    <script src="//cdn.bootcss.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+    <![endif]-->
+    <script src="//cdn.bootcss.com/jquery/1.7.1/jquery.min.js"></script>
+    <script type="text/javascript" src="/media/js/base.js"></script>
+  </head>
+  <body>
+    <div id="clickload">假装异步加载中...</div>
+    <div id="wrap">
+                <div id="header">
+            <header id="blog_title">
+                <h1><a href="/">likebeta's Blog</a></h1>
+            </header>
+            <nav id="menu">
+                <ul class="header-nav">
+                    <li><a href="http://app.ixxoo.me" target="_blank">App</a></li>
+                    <li><a href="https://github.com/likebeta" target="_blank">Github</a></li>
+                    <li><a href="/read">Read</a></li>
+                    <li><a href="/photo">Photo</a></li>
+                    <li><a href="/about">About</a></li>
+                    <li><a href="http://feed.ixxoo.me" class="menu-rss" target="_blank"></a></li>
+                </ul>
+            </nav>
+            <div class="clear"></div>
+        </div>
+
+                <section id="content">
+            <article class="post">
+             <div class="date">
+              <span class="day">02</span>
+              <span class="month">Jul</span>
+              <span class="year">2016</span>
+             </div>
+             <header>
+              <h2><a href="/animations-and-spritesheets-in-cocos2d-x.html" title="在Cocos2d-x v3中使用帧动画">在Cocos2d-x v3中使用帧动画</a></h2>
+             </header>
+             <div class="con"><p>你将会学到以下几点:</p>
+
+<ol>
+  <li>为何要使用精灵图表</li>
+  <li>在不同的设备和分辨率中设计和运行游戏</li>
+  <li>创建优化的精灵图表</li>
+  <li>创建动画</li>
+  <li>播放角色动画</li>
+</ol>
+
+<p>一句话就是: 一次开发， 到处运行(赚钱)</p>
+
+<!--more-->
+
+<h4 id="cocos2d-x">安装cocos2d-x</h4>
+
+<p>以mac上的xcode为例，其他平台可以参考官方文档。</p>
+
+<p>首先从<code class="highlighter-rouge">http://www.cocos2d-x.org/download</code>下载<code class="highlighter-rouge">cocos2d-x</code>， 本文以3.9为例，除了多边形部分也适用老版本。</p>
+
+<p>解压，然后移动到你需要放置的目录， 打开命令行，切换到此目录, 执行以下命令：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>cd cocos2d-x-3.9
+python setup.py
+</code></pre>
+</div>
+
+<p>安装脚本会根据你的环境提示输入相应的目录; 如果需要开发<code class="highlighter-rouge">android</code>程序， 你需要输入<code class="highlighter-rouge">android</code>的<code class="highlighter-rouge">sdk</code>和<code class="highlighter-rouge">ndk</code>的地址，如果只是开发MacOS或者iOS程序， 直接<strong>enter</strong>略过就行了。</p>
+
+<p>注意：<code class="highlighter-rouge">cocos2d-x</code>需要<code class="highlighter-rouge">python 2.7</code>，<code class="highlighter-rouge">MacOS</code>上已经自带，<code class="highlighter-rouge">windows</code>需要自己去<code class="highlighter-rouge">python.org</code>下载， 注意下载32位的版本， 64位的<code class="highlighter-rouge">cocos2d-x</code>会出现各种问题。</p>
+
+<p>关闭此命令行， 然后再打开， 你会发现已经多了一个命令:<code class="highlighter-rouge">cocos</code>, 你可以用它来创建工程。</p>
+
+<h4 id="section">创建第一个游戏</h4>
+
+<p>使用以下命令创建一个空工程：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>cocos new -l cpp -d ~/cocos2d-x-games Cocos2dx-SpriteSheetTutorial
+</code></pre>
+</div>
+
+<blockquote>
+  <p><strong>注意</strong>：如果出现这个错误：<code class="highlighter-rouge">ValueError: unknown local: UTF-8</code></p>
+
+  <p>设置下locale变量:</p>
+
+  <div class="highlighter-rouge"><pre class="highlight"><code>export LC_ALL=en_US.UTF-8
+export LANG=en_US.UTF-8
+</code></pre>
+  </div>
+
+  <p>然后重新运行创建的命令。</p>
+</blockquote>
+
+<p>该命令会新建一个<code class="highlighter-rouge">cocos2d-x</code>工程，位于<code class="highlighter-rouge">~/cocos2d-x-games</code>下的子目录<code class="highlighter-rouge">Cocos2dx-SpriteSheetTutorial</code>中。</p>
+
+<p>该工程是<code class="highlighter-rouge">c++</code>， 你也可以创建<code class="highlighter-rouge">lua</code>和<code class="highlighter-rouge">javascript</code>工程， 本教程以c++为例。</p>
+
+<p><code class="highlighter-rouge">Cocos2dx-SpriteSheetTutorial</code>下面有一些列以<code class="highlighter-rouge">proj.</code>开头的目录， 这些目录对应不同的开发环境，包括<code class="highlighter-rouge">Visual Studio</code>，<code class="highlighter-rouge">XCode</code>, 已经一些其他平台。</p>
+
+<p>选择你最喜欢的来开发就好了， 当需要支持其他平台的时候， 随时都可以在其他平台编译运行。</p>
+
+<p>开发的时候，最重要的事情就是避免使用平台相关的特殊代码和库， cocos2d-x底层已经为我们做好了跨平台。</p>
+
+<p>这篇教程主要是针对mac下的xcode来写的， 你可以很简单的按照教程在其他平台上做，主要就是加入文件和打开模拟器稍微有点不同。</p>
+
+<p>打开工程， 编译运行， 你会看到一个显示着<code class="highlighter-rouge">hello world</code>的程序。</p>
+
+<p>该程序包含了两个类：<code class="highlighter-rouge">AppDelegate</code>和<code class="highlighter-rouge">HelloWorldScene</code></p>
+
+<h4 id="section-1">为何要使用精灵图表</h4>
+
+<p>如果你想在游戏中使用不同的精灵和动画，笨方法就是把它们全部添加到工程， 然后循环加载。</p>
+
+<p>这个方法有几个问题：</p>
+
+<ol>
+  <li>加载每个文件都需要耗费时间</li>
+  <li>每个精灵都需要单独的加载到显存中</li>
+  <li>切换纹理代价很大</li>
+  <li>精灵无法优化，减少不必要的绘制</li>
+</ol>
+
+<p>来看下面的精灵， 这是个角色走动的动画，下面章节要用到它。精灵图片中的空白区域是为了对其动画相位。</p>
+
+<p><img src="images/2016/animationphases.png" alt="animationphases.png" /></p>
+
+<p>透明区域似乎不包含任何有用的信息，但是GPU却不关心这一点。它会逐像素的进行渲染，不管是否可见。如上图透明区域达到了68%。</p>
+
+<p>最简单的方法就是缩减绘制区域，让它只包含非透明区域，防止GPU对透明区域的绘制。这种方法可以减少24%的透明区域。</p>
+
+<p>更好的方法就是用多边形标识出非透明区域。</p>
+
+<p>好消息是： 当你使用TexturePacker的时候， 不需要关心这些，它会自动为精灵裁剪出cocos2d-x可以读取识别的矩形和多边形区域。</p>
+
+<p><img src="images/2016/trim-and-polygon-trim.png" alt="trim-and-polygon-trim.png" /></p>
+
+<h4 id="section-2">多分辨率设计</h4>
+
+<p>cocos2d-x是一个具有高度的可移植性的游戏框架，它已经对不同设备的支持做了很多工作，同样的代码可以运行在所有平台。</p>
+
+<p>但是你需要关心设计问题，有些设备(比如iPad)的宽高比是4:3, 有些是16:9， 还有一些介于他们之间的奇葩比例。</p>
+
+<h4 id="section-3">手机统计</h4>
+
+<p>新发布的手机都有很高的分辨率，但是还是有很多老手机存在。下面图标展示了截止到2015底手机和平板的屏幕分辨率统计，有将近69%的设备的分辨率等于或者低于1280 x 720.</p>
+
+<p><img src="images/2016/device-stats.png" alt="device-stats.png" /></p>
+
+<p>新机和平板都具有很高分辨率甚至全高清的分辨率，但是只占了30%.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Model</th>
+      <th style="text-align: left">Resolution</th>
+      <th style="text-align: left">Aspect Ratio</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">iPhone 6s</td>
+      <td style="text-align: left">1334 x 750</td>
+      <td style="text-align: left">16:9</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">iPhone 6s Plus</td>
+      <td style="text-align: left">2208 x 1242</td>
+      <td style="text-align: left">16:9</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">HTC One M8</td>
+      <td style="text-align: left">1920 x 1080</td>
+      <td style="text-align: left">16:9</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Samsung Galaxy S6</td>
+      <td style="text-align: left">2560 x 1440</td>
+      <td style="text-align: left">16:9</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Sony Xperia Z3</td>
+      <td style="text-align: left">1920 x 1080</td>
+      <td style="text-align: left">16:9</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">iPad (retina)</td>
+      <td style="text-align: left">2048 x 1536</td>
+      <td style="text-align: left">4:3</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Microsoft Surface Pro 4</td>
+      <td style="text-align: left">2736 x 1824</td>
+      <td style="text-align: left">3:2</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Amazon Kindle Fire HD 7</td>
+      <td style="text-align: left">1280 x 800</td>
+      <td style="text-align: left">16:10</td>
+    </tr>
+  </tbody>
+</table>
+
+<h4 id="section-4">设计的两个难点</h4>
+
+<p>两个难点：不同的分辨率和不同的屏幕宽高比。</p>
+
+<p><strong>不同的分辨率</strong></p>
+
+<p>不同的分辨率其实并不算是问题，只要你的游戏不包含太多复杂的对象和小的字体。你可以使用高分辨率来设计游戏， 然后通过缩放来适配小分辨率的设备。</p>
+
+<p>对于低性能的小分辨率设备，内存可能是个问题。对于这种设备比较好的方法就是为他们加载缩放版本的精灵图表。一个2048x2048分辨率真色彩精灵需要16M内存，如果缩放50%就只有4M了。</p>
+
+<p>TexturePacker可以快速创建各种缩放版本的精灵图表。</p>
+
+<p><strong>不同的宽高比</strong></p>
+
+<p>不同的宽高比是个棘手的问题，因为他会影响游戏的运行效果。有3中处理方法：</p>
+
+<ol>
+  <li>为4:3和16:9分别设计一套UI</li>
+  <li>以16:9或者4:3来设计，然后加上黑边</li>
+  <li>以16:9来设计，通过缩放来填充适配4:3</li>
+</ol>
+
+<p><img src="images/2016/black-bars.png" alt="black-bars.png" /></p>
+
+<p style="text-align:center">使用黑边， 分数显示在外面</p>
+
+<p><img src="images/2016/extended-scene.png" alt="extended-scene.png" /></p>
+
+<p style="text-align:center">缩放场景</p>
+
+<p>第一种方法可能是最好的，但是会增加大量的工作， 并且会影响到游戏展现，带来更大的挑战。</p>
+
+<p>第二种看起来有点像90年代的设计。</p>
+
+<p>我比较推荐第三种，它给玩家一致的体验。本教程的资源是为4:3宽高比做的，但是内容主要是针对16:9。</p>
+
+<h4 id="texturepacker">使用TexturePacker来创建精灵图表</h4>
+
+<p>首先从这里下载安装：https://www.codeandweb.com/texturepacker/download</p>
+
+<p>拖拽cityscene文件夹到左侧面板，TexturePacker会添加包含的精灵到表中，并且保持文件的结构。当添加或者删除精灵图片是也会自动更新精灵表。</p>
+
+<p><img src="images/2016/texturepacker-add-sprites.png" alt="texturepacker-add-sprites.png" /></p>
+
+<p><code class="highlighter-rouge">Data Format</code>选择<code class="highlighter-rouge">cocos2d-x</code>, 不要选择<code class="highlighter-rouge">cocos2d</code>,<code class="highlighter-rouge">cocos2d</code>不支持多边形打包。</p>
+
+<p><img src="images/2016/texturepacker-select-cocos2d-x.png" alt="texturepacker-select-cocos2d-x.png" /></p>
+
+<p>开启多边形支持:<code class="highlighter-rouge">Trim mode</code>选择<code class="highlighter-rouge">polygon</code>, 你可以通过调节<code class="highlighter-rouge">Tracer tolerance</code>来控制精灵的多边形顶点数量，越多的顶点就可以越精确的标识非空白区域，减少绘制量， 但是尽量别控制顶点的数量， 以为顶点的计算需要消耗CPU的资源。</p>
+
+<p>因为背景图片是个非透明矩形，所以这个精灵表过度绘制依然达到了95%。</p>
+
+<p><img src="images/2016/texturepacker-polygon-sprites.png" alt="texturepacker-polygon-sprites.png" /></p>
+
+<p>为不同的分辨率设备添加缩放比例，右边面板点击<code class="highlighter-rouge">Scaling variants</code>选择<code class="highlighter-rouge">cocos2d-x HDR/HD/SD</code>，点击<code class="highlighter-rouge">Apply</code>，你会看到三个缩放比例:<code class="highlighter-rouge">/HDR/</code>不缩放，<code class="highlighter-rouge">/HD/</code>缩放比例 0.5 和<code class="highlighter-rouge">/SD/</code>缩放比例0.25。如果你不是你想要的， 你可以删除它们，点击<code class="highlighter-rouge">Close</code>返回精灵表。</p>
+
+<p>你会看到3个tab标签，点击标签可以预览相应缩放比例的精灵表。</p>
+
+<p><img src="images/2016/texturepacker-scaling-variants.png" alt="texturepacker-scaling-variants.png" /></p>
+
+<p>点击<code class="highlighter-rouge">Data file</code>后面的文件夹图标，将文件命名<code class="highlighter-rouge">cityscene.png</code>， 并保存在你工程下面的res目录中。你会得到一个错误，提示你需要在文件名中包含一个占位符<code class="highlighter-rouge"><span class="p">{</span><span class="err">v</span><span class="p">}</span></code>。 将文件名从<code class="highlighter-rouge">.../res/cityscene.plist</code>改为<code class="highlighter-rouge">.../res/{v}/cityscene.plist</code>。当保存文件的时候，这里的占位符会被替换成缩放比例的名字。</p>
+
+<p>点击工具栏中的<code class="highlighter-rouge">Publish sprite sheet</code>，你将会在工程中看到6个文件：</p>
+
+<ul>
+  <li>res
+    <ul>
+      <li>HDR
+        <ul>
+          <li>cityscene.plist</li>
+          <li>cityscene.png</li>
+        </ul>
+      </li>
+      <li>HD
+        <ul>
+          <li>cityscene.plist</li>
+          <li>cityscene.png</li>
+        </ul>
+      </li>
+      <li>SD
+        <ul>
+          <li>cityscene.plist</li>
+          <li>cityscene.png</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<h4 id="appdelegate">AppDelegate中的启动代码</h4>
+
+<p>现在让我们开始写点代码吧。在开始使用精灵图表前，我们先来做点基础工作。如果<code class="highlighter-rouge">AppDelegate</code>中代码处理的好的话，可以让你游戏和分辨率保持解耦。</p>
+
+<h4 id="section-5">启动和分辨率处理</h4>
+
+<p>用以下代码替换<code class="highlighter-rouge">AppDelegate.h</code>中的代码:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>#ifndef  _APP_DELEGATE_H_
+#define  _APP_DELEGATE_H_
+
+#include "cocos2d.h"
+
+class  AppDelegate : private cocos2d::Application
+{
+    public:
+        virtual void initGLContextAttrs();
+        virtual bool applicationDidFinishLaunching();
+        virtual void applicationDidEnterBackground();
+        virtual void applicationWillEnterForeground();
+
+    private:
+        void initOpenGL();
+        void initMultiResolution();
+        void initDirector();
+        void createAndRunScene();
+};
+
+#endif
+</code></pre>
+</div>
+
+<p>程序会在不同的时机调用这些<code class="highlighter-rouge">public</code>虚函数，你需要实现定义在<code class="highlighter-rouge">ApplicationProtocol</code>中的纯虚函数。这里的<code class="highlighter-rouge">private</code>函数帮助我们更好的组织整个过程。</p>
+
+<p>删除并用以下代码替换<code class="highlighter-rouge">AppDelegate.cpp</code>中的内容：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>#include "AppDelegate.h"
+#include "HelloWorldScene.h"
+
+USING_NS_CC;
+
+static cocos2d::Size designResolutionSize = cocos2d::Size(2048, 1536);
+
+static cocos2d::Size smallResolutionSize = cocos2d::Size(512, 384);
+static cocos2d::Size mediumResolutionSize = cocos2d::Size(1024, 768);
+static cocos2d::Size largeResolutionSize = cocos2d::Size(2048, 1536);
+</code></pre>
+</div>
+
+<p><code class="highlighter-rouge">designResolutionSize</code>表示游戏的设计大小。你可以根据自己的需要随意设置它，不过业界用的比较多的下面两个值：</p>
+
+<ol>
+  <li>(512, 384): 在低分辨率设备中1单元对应1像素</li>
+  <li>(2048x1536): 在你的设计中1单元对应1像素</li>
+</ol>
+
+<p>在cocos2d-x中想做到像素级别的完美设计很困难，最简单的原因，如果你想在Android设备上运行游戏， 你就需要面对大量的不同分辨率设备，就连iOS的设备大小和比例也都不同。</p>
+
+<p>我个人比较建议使用高分辨率作为<code class="highlighter-rouge">designResolutionSize</code>, 因为这样能更容易的在图形编辑器中权衡和设置大小和位置。 但是如果一个对象放置的坐标位置不能被4整除，可能会低分辨率设备上有点误差。但是考虑到缩放，其实并不是个大问题。</p>
+
+<p><code class="highlighter-rouge">smallResolutionSize</code>,<code class="highlighter-rouge">mediumResolutionSize</code>and<code class="highlighter-rouge">largeResolutionSize</code>这3个值表示不同屏幕的设备提供的缩放的设计尺寸。他们会对应<code class="highlighter-rouge">TexturePacker</code>打包成的缩放版的精灵表。</p>
+
+<p>添加下面的函数， 它负责加载缩放版本的图片资源。</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>void AppDelegate::initMultiResolution()
+{
+    auto director = Director::getInstance();
+    auto glview = director-&gt;getOpenGLView();
+
+    glview-&gt;setDesignResolutionSize(
+            designResolutionSize.width,
+            designResolutionSize.height,
+            ResolutionPolicy::NO_BORDER
+    );
+
+    ...
+</code></pre>
+</div>
+
+<p><code class="highlighter-rouge">setDesignResolutionSize</code>用来设置游戏的设计尺寸，<code class="highlighter-rouge">ResolutionPolicy::NO_BORDER</code>表示场景会被拉升填满整个屏幕， 该参数还有几个值可以选择：</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>值</th>
+      <th>描述</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>EXACT_FIT</td>
+      <td>拉升填充整个屏幕，但不是宽高等比拉升，某些情况整个画面是扭曲变形的。</td>
+    </tr>
+    <tr>
+      <td>NO_BORDER</td>
+      <td>等比拉升，填满整个屏幕，可能超出屏幕外，有些部分不可见</td>
+    </tr>
+    <tr>
+      <td>SHOW_ALL</td>
+      <td>等比拉升，但是不会超出屏幕外，如果比例不一样，就用黑边填充两边的空白区域</td>
+    </tr>
+    <tr>
+      <td>FIXED_HEIGHT</td>
+      <td>以高为准，宽进行缩放适配</td>
+    </tr>
+    <tr>
+      <td>FIXED_WIDTH</td>
+      <td>以宽为准，高进行缩放适配</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>实际使用中<code class="highlighter-rouge">EXACT_FIT</code>基本上都不会采用，<code class="highlighter-rouge">NO_BORDER</code>可能是最简单的方法了。</p>
+
+<p>继续补充<code class="highlighter-rouge">initMultiResolution()</code>函数：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>...
+
+    std::vector&lt;std::string&gt; searchPaths;
+    float scaleFactor = 1.0f;
+    Size frameSize = glview-&gt;getFrameSize();
+
+    if (frameSize.height &gt; mediumResolutionSize.height)
+    {
+        searchPaths.push_back("res/HDR");
+        scaleFactor = largeResolutionSize.height/designResolutionSize.height;
+    }
+    else if (frameSize.height &gt; smallResolutionSize.height)
+    {
+        searchPaths.push_back("res/HD");
+        scaleFactor = mediumResolutionSize.height/designResolutionSize.height;
+    }
+    else
+    {
+        searchPaths.push_back("res/SD");
+        scaleFactor = smallResolutionSize.height/designResolutionSize.height;
+    }
+
+    director-&gt;setContentScaleFactor(scaleFactor);
+    FileUtils::getInstance()-&gt;setSearchPaths(searchPaths);
+}
+</code></pre>
+</div>
+
+<p><code class="highlighter-rouge">getFrameSize()</code>可以得到设备的显示尺寸，与预设的几种尺寸的高度进行比较来选择尽量高分辨率的设计方案。</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>高</th>
+      <th>精灵表</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>h &lt; 512</td>
+      <td>SD</td>
+    </tr>
+    <tr>
+      <td>513 &lt; h &lt; 1024</td>
+      <td>HD</td>
+    </tr>
+    <tr>
+      <td>h &gt; 1024</td>
+      <td>HDR</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>代码还设置了资源的搜索路径，这样的好处是不需要硬编码，只要指定加载<code class="highlighter-rouge">cityscene.plist</code>, cocos2d-x 就会为我们加载正确的文件。</p>
+
+<p>还有一些模板代码，我们直接复制就行了，比如用来创建<code class="highlighter-rouge">OpenGL view</code>的。</p>
+
+<h4 id="appdelegate-1">AppDelegate添加更多代码</h4>
+
+<p>下面的一坨代码也必须要添加进去，用来响应游戏进入前台/切入后台。</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>void AppDelegate::initOpenGL()
+{
+    auto director = Director::getInstance();
+    auto glview = director-&gt;getOpenGLView();
+    if(!glview)
+    {
+        #if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32) ||
+            (CC_TARGET_PLATFORM == CC_PLATFORM_MAC) ||
+            (CC_TARGET_PLATFORM == CC_PLATFORM_LINUX)
+        glview = GLViewImpl::createWithRect("Cocos2dx-SpriteSheetTutorial",
+            Rect(0, 0, designResolutionSize.width, designResolutionSize.height));
+        #else
+        glview = GLViewImpl::create("Cocos2dx-SpriteSheetTutorial");
+        #endif
+        director-&gt;setOpenGLView(glview);
+    }
+}
+</code></pre>
+</div>
+
+<p>下面代码用来初始化<code class="highlighter-rouge">Director</code>, 设置刷新帧率，开启右下角显示帧率等统计信息。</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>void AppDelegate::initDirector()
+{
+    auto director = Director::getInstance();
+    director-&gt;setAnimationInterval(1.0 / 60);
+    director-&gt;setDisplayStats(true);
+}
+</code></pre>
+</div>
+
+<p>下面代码创建并运行游戏场景，下面还需要为场景创建<code class="highlighter-rouge">HelloWorld</code>层。</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>void AppDelegate::createAndRunScene()
+{
+    auto scene = HelloWorld::createScene();
+    Director::getInstance()-&gt;runWithScene(scene);
+}
+</code></pre>
+</div>
+
+<p>下面方法会在cocos2d-x初始化完成后调用前面创建的所有方法。</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>bool AppDelegate::applicationDidFinishLaunching()
+{
+    initOpenGL();
+    initDirector();
+    initMultiResolution();
+    createAndRunScene();
+    return true;
+}
+</code></pre>
+</div>
+
+<p>下面的两个函数会在你切入后台或者进入前台的时候调用。可以暂停所有动画和音效，也可以停止一些运算等等。</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>void AppDelegate::applicationDidEnterBackground()
+{
+    Director::getInstance()-&gt;stopAnimation();
+    // SimpleAudioEngine::getInstance()-&gt;pauseBackgroundMusic();
+}
+
+void AppDelegate::applicationWillEnterForeground()
+{
+    Director::getInstance()-&gt;startAnimation();
+    // SimpleAudioEngine::getInstance()-&gt;resumeBackgroundMusic();
+}
+</code></pre>
+</div>
+
+<p>最后一个需要的函数是<code class="highlighter-rouge">initGLContextAttrs()</code>, 它用来设置一些OpenGL绘制时的上下文环境。如果没有特殊的需求， 最好别修改它。</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>void AppDelegate::initGLContextAttrs()
+{
+    //set OpenGL context attributions,now can only set six attributions:
+    //red,green,blue,alpha,depth,stencil
+    GLContextAttrs glContextAttrs = {8, 8, 8, 8, 24, 8};
+    GLView::setGLContextAttrs(glContextAttrs);
+}
+</code></pre>
+</div>
+
+<h4 id="section-6">使用精灵图表</h4>
+
+<p>After the less interesting tasks of initializing the app you’ll now get the 精灵图表 to work.
+经过一些初始化工作， 现在可以使用精灵图表了。</p>
+
+<p>在<code class="highlighter-rouge">HelloWorldScene.h</code>中添加以下代码：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>#ifndef __HELLOWORLD_SCENE_H__
+#define __HELLOWORLD_SCENE_H__
+
+#include "cocos2d.h"
+
+class HelloWorld : public cocos2d::Layer
+{
+public:
+    static cocos2d::Scene* createScene();
+    virtual bool init();
+    CREATE_FUNC(HelloWorld);
+
+private:
+    cocos2d::Vector getAnimation(const char *format, int count);
+};
+
+#endif
+</code></pre>
+</div>
+
+<p>这里包含了是个函数声明：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>createScene()
+</code></pre>
+</div>
+
+<p>用来创建一个包含<code class="highlighter-rouge">HelloWorld</code>层的场景。场景类似一个容器，包含了众多的层以及游戏数据。它会在<code class="highlighter-rouge">AppDelegate::createAndRunScene</code>中的<code class="highlighter-rouge">runWithScene()</code>被<code class="highlighter-rouge">Director</code>使用。</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>init()
+</code></pre>
+</div>
+
+<p>Init用来初始化<code class="highlighter-rouge">HelloWorld</code>对象，并创建游戏对象和动画。</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>CREATE_FUNC(HelloWorld)
+</code></pre>
+</div>
+
+<p><code class="highlighter-rouge">CREATE_FUNC</code>是一个宏， 创建了一个静态方法<code class="highlighter-rouge">HelloWorld::create()</code>, 这个方法会创建一个<code class="highlighter-rouge">HelloWorld</code>对象，进行内存管理， 然后调用<code class="highlighter-rouge">init()</code>。</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>getAnimation()
+</code></pre>
+</div>
+
+<p>此方法封装了从精灵表创建动画。</p>
+
+<p>下面来看看<code class="highlighter-rouge">HelloWorldScene.cpp</code>。</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>#include "HelloWorldScene.h"
+
+USING_NS_CC;
+
+Scene* HelloWorld::createScene()
+{
+    auto scene = Scene::create();
+    auto layer = HelloWorld::create();
+    scene-&gt;addChild(layer);
+    return scene;
+}
+</code></pre>
+</div>
+
+<p>如上所述：此方法封装了场景的创建，添加<code class="highlighter-rouge">HelloWorld</code>层，然后返回场景给<code class="highlighter-rouge">Director</code>使用。</p>
+
+<h4 id="section-7">添加静态背景</h4>
+
+<blockquote>
+  <p><strong>不用使用 SpriteBatchNode</strong> 。</p>
+
+  <p>在<code class="highlighter-rouge">Cocos2d-x V2</code>中一般会使用<code class="highlighter-rouge">CCSpriteBatchNode</code>来提高精灵表的性能，为了兼容，此方法在<code class="highlighter-rouge">Cocos2d-x V3</code>中也存在，叫做<code class="highlighter-rouge">SpriteBatchNode</code>, 但hi已经被标记为废弃。</p>
+
+  <p><code class="highlighter-rouge">Cocos2d-x V3</code>中会自动进行批处理，不需要显示调用。多边形的精灵会被分割成小块，因为批处理只支持矩形。</p>
+</blockquote>
+
+<p>下一个函数是<code class="highlighter-rouge">init()</code>:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>bool HelloWorld::init()
+{
+    if ( !Layer::init() )
+    {
+        return false;
+    }
+
+    SpriteFrameCache::getInstance()-&gt;addSpriteFramesWithFile("cityscene.plist");
+
+    Vec2 origin = Director::getInstance()-&gt;getVisibleOrigin();
+    Vec2 visibleSize = Director::getInstance()-&gt;getVisibleSize();
+
+    // background
+    auto background = Sprite::createWithSpriteFrameName("background.png");
+    background-&gt;setPosition(origin.x + visibleSize.x / 2,origin.y + visibleSize.y/2);
+    this-&gt;addChild(background);
+
+    return true;
+}
+</code></pre>
+</div>
+
+<p>首先调用父类初始化。</p>
+
+<p>使用前你需要先加载精灵表，你可以使用<code class="highlighter-rouge">addSpriteFramesWithFile</code>来加载plist文件，plist文件中包含了精灵表信息，<code class="highlighter-rouge">cocos2d-x</code>会被自动加载。</p>
+
+<p>注意这里并没有分辨率相关的处理，<code class="highlighter-rouge">AppDelegate</code>中的代码保证了<code class="highlighter-rouge">addSpriteFramesWithFile</code>会加载对应的资源。</p>
+
+<p>下面两行返回了屏幕原点和尺寸，这些坐标是依据设计尺寸的值。下面可以使用这两个值来让背景居中显示。</p>
+
+<p>调用<code class="highlighter-rouge">Sprite::createWithSpriteFrameName()</code>来创建精灵，参数是加载到<code class="highlighter-rouge">TexturePacker</code>中是使用的名字。</p>
+
+<p>设置背景居中， 在4:3设备中你会看到更多的天空和街道，而在16:9的设备中是居中的。</p>
+
+<p>最后一行将背景对象添加到层中。</p>
+
+<p>编译运行， 你会看到如下场景：</p>
+
+<p><img src="images/2016/gamescene-just-background.png" alt="gamescene-just-background.png" /></p>
+
+<h4 id="section-8">播放动画</h4>
+
+<p><code class="highlighter-rouge">cocos2d-x</code>中你需要告诉她使用哪些精灵帧来播放动画。最简单的方法就是使用下面的函数，他返回精灵帧组成的数组：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>Vector HelloWorld::getAnimation(const char *format, int count)
+{
+    auto spritecache = SpriteFrameCache::getInstance();
+    Vector animFrames;
+    char str[100];
+    for(int i = 1; i &lt;= count; i++)
+    {
+        sprintf(str, format, i);
+        animFrames.pushBack(spritecache-&gt;getSpriteFrameByName(str));
+    }
+    return animFrames;
+}
+</code></pre>
+</div>
+
+<p>这个函数以给定的格式从精灵表中检索精灵帧，你可以这样调用：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>Vector frames = getAnimation("capguy/walk/%04d.png", 8);
+</code></pre>
+</div>
+
+<p><code class="highlighter-rouge">%04d</code>格式字符串会生成一0填充的4个数字前缀的字符串：0001, 0002, 0003,…</p>
+
+<p>调用此函数会返回8个精灵帧的数组：capguy/walk/0001.png,… capguy/walk/0008.png</p>
+
+<p>在<code class="highlighter-rouge">HelloWorldScene.cpp</code>中的<code class="highlighter-rouge">init()</code>返回前添加添加以下代码：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>// sprite
+auto frames = getAnimation("capguy/walk/%04d.png", 8);
+auto sprite = Sprite::createWithSpriteFrame(frames.front());
+background-&gt;addChild(sprite);
+sprite-&gt;setPosition(100,620);
+
+auto animation = Animation::createWithSpriteFrames(frames, 1.0f/8);
+sprite-&gt;runAction(RepeatForever::create(Animate::create(animation)));
+</code></pre>
+</div>
+
+<p>第一行就是获取精灵帧数组，然后用第一帧创建一个精灵。</p>
+
+<p>将精灵作为子节点加到背景中，这里不是作为场景的子节点。确保将精灵添加到背景上正确的位置。</p>
+
+<p>第二块代码用精灵帧创建了动画，并设置帧率为<code class="highlighter-rouge">1.0f/8</code>， 一秒播放8帧。 注意这里是<code class="highlighter-rouge">1.0f/8</code>而不是<code class="highlighter-rouge">1/8</code>，后者会是一个整型，这里就是0，动画永远都不会被运行。</p>
+
+<p>最后一行组合了3个函数的调用：</p>
+
+<ul>
+  <li>创建一个动画对象，用来播放动画</li>
+  <li>创建一个<code class="highlighter-rouge">RepeatForever</code>循环播放动画</li>
+  <li>将<code class="highlighter-rouge">RepeatForever</code>对象传递给精灵执行</li>
+</ul>
+
+<p>编译运行，你会看到一个<code class="highlighter-rouge">Capguy</code>在原地行走。</p>
+
+<p><img src="images/2016/gamescene-capguy.png" alt="gamescene-capguy.png" /></p>
+
+<h4 id="section-9">让精灵移动起来</h4>
+
+<p>我们来让<code class="highlighter-rouge">Capguy</code>从左往右走起来，<code class="highlighter-rouge">cocos2d-x</code>可以使用一个<code class="highlighter-rouge">MoveTo</code>的动作。它有两个参数: 持续时间(秒)和目标位置坐标。</p>
+
+<p>在<code class="highlighter-rouge">HelloWorldScene.cpp</code>中的<code class="highlighter-rouge">init()</code>返回前添加添加以下代码：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>auto movement = MoveTo::create(10, Vec2(2148,620));
+auto resetPosition = MoveTo::create(0, Vec2(-150,620));
+auto sequence = Sequence::create(movement, resetPosition, NULL);
+sprite-&gt;runAction(RepeatForever::create(sequence));
+</code></pre>
+</div>
+
+<p><code class="highlighter-rouge">resetPosition</code>重置<code class="highlighter-rouge">Capguy</code>的位置成屏幕最左边, 时间为0会立马完成动作。</p>
+
+<p><code class="highlighter-rouge">Sequence</code>创建了一个动作序列， 会一个接一个的执行， 你可以同时添加几个动作， 但是要保证以NULL结尾。</p>
+
+<p>最后，将动作使用<code class="highlighter-rouge">RepeatForever</code>包裹传递给精灵执行。</p>
+
+<p>编译运行， 你会看到<code class="highlighter-rouge">Capguy</code>在街上散步。</p>
+
+<p><img src="images/2016/gamescene-animated.png" alt="gamescene-animated.png" /></p>
+
+<p>原文： <a href="https://www.codeandweb.com/blog/2015/12/15/animations-and-spritesheets-in-cocos2d-x">Tutorial: Using sprite sheet animations in cocos2d-x V3</a></p>
+</div>
+             <div class="prev_and_next">
+                
+                <div><strong>上一篇： <a href="/texture-unpacker.html" title="分割还原TexturePacker打包的小图">分割还原TexturePacker打包的小图</a></strong></div>
+                
+                
+                <div><strong>下一篇： 这个真没有！！！</strong></div>
+                
+             </div>
+             <div class="postunder"><div id="comments">
+        <div id="disqus_thread"></div>
+    <script type="text/javascript">
+        /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+        var disqus_shortname = 'ixxoo'; // required: replace example with your forum shortname
+
+        /* * * DON'T EDIT BELOW THIS LINE * * */
+        (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    <a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+
+</div></div>
+            </article>
+        </section>
+        <div class="clear"></div>
+
+                <footer id="footer">
+            <div class="foot">
+                <a id="gotop" href="javascript:void(0);" onclick="return false;">TOP</a>
+                <div id="copyright">Copyright &copy; 2016 <a href="https://www.ixxoo.me" target="_blank">likebeta</a>, All Rights Reserved, Power by <a href="https://github.com/likebeta" target="_blank">Github Pages</a> and <a href="https://github.com/mojombo/jekyll" target="_blank">Jekyll</a></div>
+            </div>
+            <div id="statistics" style="display:none">
+    <script type="text/javascript" src="//s20.cnzz.com/stat.php?id=5221832&web_id=5221832"></script>
+</div>
+        </footer>
+
+    </div>
+  <script type="text/javascript" color="255,0,0" opacity="0.3" count="99" src="/media/js/canvas-nest.min.js"></script>
+  </body>
+</html>

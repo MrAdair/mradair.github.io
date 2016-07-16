@@ -1,0 +1,142 @@
+<!--
+#include <stdio.h>
+void main()
+{
+    double world;
+    unsigned letter;
+    short stay;
+    long memories;
+    printf("I miss you.\n");
+}
+-->
+<!doctype html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <meta name="author" content="likebeta" />
+    <meta name="keywords" content="" />
+    <meta name="description" content="" />
+    <link rel="shortcut icon" href="/media/img/favicon.ico" />
+    <link rel="alternate" title="likebeta" type="application/atom+xml" href="http://feed.ixxoo.me" />
+    <link rel="stylesheet" type="text/css" href="/media/css/style.css" />
+    <link rel="stylesheet" href="/media/css/highlight.css" />
+    <title>ifttt的使用体验</title>
+    <!--[if lt IE 9]>
+    <script src="//cdn.bootcss.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+    <![endif]-->
+    <script src="//cdn.bootcss.com/jquery/1.7.1/jquery.min.js"></script>
+    <script type="text/javascript" src="/media/js/base.js"></script>
+  </head>
+  <body>
+    <div id="clickload">假装异步加载中...</div>
+    <div id="wrap">
+                <div id="header">
+            <header id="blog_title">
+                <h1><a href="/">likebeta's Blog</a></h1>
+            </header>
+            <nav id="menu">
+                <ul class="header-nav">
+                    <li><a href="http://app.ixxoo.me" target="_blank">App</a></li>
+                    <li><a href="https://github.com/likebeta" target="_blank">Github</a></li>
+                    <li><a href="/read">Read</a></li>
+                    <li><a href="/photo">Photo</a></li>
+                    <li><a href="/about">About</a></li>
+                    <li><a href="http://feed.ixxoo.me" class="menu-rss" target="_blank"></a></li>
+                </ul>
+            </nav>
+            <div class="clear"></div>
+        </div>
+
+                <section id="content">
+            <article class="post">
+             <div class="date">
+              <span class="day">16</span>
+              <span class="month">Jun</span>
+              <span class="year">2013</span>
+             </div>
+             <header>
+              <h2><a href="/ifttt.html" title="ifttt的使用体验">ifttt的使用体验</a></h2>
+             </header>
+             <div class="con"><p>这玩意在内测的时候就注册了号，但是没用过。最近Google Reader关闭，说实话目前真找不到替代品。订阅的feed太多，很多都来不及查看，但是email却是经常查看的，比如很多博客使用QQ邮件列表，feedburner来进行邮件更新推送，订阅用户可以不用主动去查看。但是很多博客还是不能使用邮件来订阅的，当然我们可以使用QQ邮件列表，feedburner创建个item来进行转换，但是我也可以使用ifttt做到类似的功能，并且功能更强大。</p>
+
+<!--more-->
+
+<h4 id="section">原理</h4>
+
+<blockquote>
+  <p>ifttt是一个新生的网络服务平台，通过不同其他平台的条件来决定是否执行下一条命令。即对网络服务通过其他网络服务作出反应作出反映。ifttt得名为其口号”if this then that”。</p>
+</blockquote>
+
+<blockquote>
+  <p>ifttt基于任务的条件触发，类似编程语言，即：“若XXX进行YYY行为，执行ZZZ。”。每一个可以触发或者作为任务的网站叫做一个Channel，触发的条件叫做Triggers，之后执行的任务叫做Actions，综合上面的一套流程叫做Task。</p>
+</blockquote>
+
+<h4 id="section-1">用途</h4>
+
+<p>用ifttt创建条目很简单，甚至有很多别人已经分享的Task，我们可以直接拿来用。我使用ifttt创建了几个Task：</p>
+
+<ol>
+  <li>ifttt有更新，发email给我</li>
+  <li>皮皮书屋有更新，发email给我</li>
+  <li>dropbox产生event，发email给我</li>
+  <li>v2ex有回复，发email给我</li>
+  <li>facebook添加了图片，将图片添加到dropbox(这个又会触发3)</li>
+  <li>xjp博客有更新，将博文email给我</li>
+</ol>
+
+<p>还有好多好玩的Task，大家可以自己去挖掘……</p>
+
+<h4 id="section-2">吐槽</h4>
+
+<p>拿 <code class="highlighter-rouge">feed更新email我</code> 这个Task来说：同QQ邮件列表和feedburner一样只能输入一个feed地址，这样就需要创建大量的Task。<br />
+另外，貌似我没看到api，我想自己搞个解决上面这个吐槽的方法，但是我真心找不到api。如果能创建一个类似杂志的Task，里面可以随意订阅自己喜欢的feed挺爽的，貌似盛大出过一个<code class="highlighter-rouge">微杂志</code>，现在已经关了(btw，盛大的东西以后咋也不会用了，IT行业的败类)。</p>
+
+<h4 id="section-3">扩展</h4>
+
+<p><a href="https://ifttt.com/people/likebeta">ifttt/likebeta</a><br />
+<a href="http://zh.wikipedia.org/wiki/Ifttt">wikipedia/ifttt</a></p>
+</div>
+             <div class="prev_and_next">
+                
+                <div><strong>上一篇： <a href="/difference-between-resume-and-cv.html" title="resume和cv的区别">resume和cv的区别</a></strong></div>
+                
+                
+                <div><strong>上一篇： <a href="/ubuntu-static-ip-and-dns.html" title="ubuntu配置静态ip和dns">ubuntu配置静态ip和dns</a></strong></div>
+                
+             </div>
+             <div class="postunder"><div id="comments">
+        <div id="disqus_thread"></div>
+    <script type="text/javascript">
+        /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+        var disqus_shortname = 'ixxoo'; // required: replace example with your forum shortname
+
+        /* * * DON'T EDIT BELOW THIS LINE * * */
+        (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    <a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+
+</div></div>
+            </article>
+        </section>
+        <div class="clear"></div>
+
+                <footer id="footer">
+            <div class="foot">
+                <a id="gotop" href="javascript:void(0);" onclick="return false;">TOP</a>
+                <div id="copyright">Copyright &copy; 2016 <a href="https://www.ixxoo.me" target="_blank">likebeta</a>, All Rights Reserved, Power by <a href="https://github.com/likebeta" target="_blank">Github Pages</a> and <a href="https://github.com/mojombo/jekyll" target="_blank">Jekyll</a></div>
+            </div>
+            <div id="statistics" style="display:none">
+    <script type="text/javascript" src="//s20.cnzz.com/stat.php?id=5221832&web_id=5221832"></script>
+</div>
+        </footer>
+
+    </div>
+  <script type="text/javascript" color="255,0,0" opacity="0.3" count="99" src="/media/js/canvas-nest.min.js"></script>
+  </body>
+</html>

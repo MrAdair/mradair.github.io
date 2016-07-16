@@ -1,0 +1,172 @@
+<!--
+#include <stdio.h>
+void main()
+{
+    double world;
+    unsigned letter;
+    short stay;
+    long memories;
+    printf("I miss you.\n");
+}
+-->
+<!doctype html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <meta name="author" content="likebeta" />
+    <meta name="keywords" content="" />
+    <meta name="description" content="" />
+    <link rel="shortcut icon" href="/media/img/favicon.ico" />
+    <link rel="alternate" title="likebeta" type="application/atom+xml" href="http://feed.ixxoo.me" />
+    <link rel="stylesheet" type="text/css" href="/media/css/style.css" />
+    <link rel="stylesheet" href="/media/css/highlight.css" />
+    <title>mklink让网盘同步不同文件夹</title>
+    <!--[if lt IE 9]>
+    <script src="//cdn.bootcss.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+    <![endif]-->
+    <script src="//cdn.bootcss.com/jquery/1.7.1/jquery.min.js"></script>
+    <script type="text/javascript" src="/media/js/base.js"></script>
+  </head>
+  <body>
+    <div id="clickload">假装异步加载中...</div>
+    <div id="wrap">
+                <div id="header">
+            <header id="blog_title">
+                <h1><a href="/">likebeta's Blog</a></h1>
+            </header>
+            <nav id="menu">
+                <ul class="header-nav">
+                    <li><a href="http://app.ixxoo.me" target="_blank">App</a></li>
+                    <li><a href="https://github.com/likebeta" target="_blank">Github</a></li>
+                    <li><a href="/read">Read</a></li>
+                    <li><a href="/photo">Photo</a></li>
+                    <li><a href="/about">About</a></li>
+                    <li><a href="http://feed.ixxoo.me" class="menu-rss" target="_blank"></a></li>
+                </ul>
+            </nav>
+            <div class="clear"></div>
+        </div>
+
+                <section id="content">
+            <article class="post">
+             <div class="date">
+              <span class="day">25</span>
+              <span class="month">Apr</span>
+              <span class="year">2013</span>
+             </div>
+             <header>
+              <h2><a href="/mklink.html" title="mklink让网盘同步不同文件夹">mklink让网盘同步不同文件夹</a></h2>
+             </header>
+             <div class="con"><p>现在云存储越演越烈，各大公司都推出了自己的网盘，竞争进入白热化，有的以大容量吸引人，有的以速度著称，有的以网赚扎根，有的以托微博圈地，有的定位企业，还有的主打安全……</p>
+
+<p>我接触网盘是08年大一的时候，到现在基本上所有的网盘都不同程度的试用过，目前还在使用的也还有几种。大大小小的N种网盘中只有<a href="https://jianguoyun.com/d/ref/WITP6i8eN9eYaXQ5QWJo5A">坚果云</a>和<a href="https://skydrive.live.com">skydrive</a>支持不同目录的同步，而其他的<a href="http://www.kuaipan.cn/?channel=ptmv42">金山快盘</a>，<a href="http://kb.vc/bp2V">酷盘</a>，<a href="http://pan.baidu.com">百度网盘</a>，<a href="https://www.yunio.com/index/url/code/RndYTVl3WkxtU09XUkNQM1ZvdjhXWmp6cnkzOFEwTW05ZnllZ3JqNW1JVVQ1N0ZtbHY3STRJMA==">云诺</a>，<a href="http://vdisk.weibo.com">新浪微盘</a>，<a href="http://115.com/invite/64a385">115</a>,<a href="http://dbank.vmall.com/inviter/306001">华为网盘</a>,<a href="http://www.gokuai.com">够快</a>,<a href="http://db.tt/jacpdIw">Dropbox</a>，<a href="https://drive.google.com/">Google Driver</a>，<a href="https://www.box.com">Box</a>等等都只能同步选定的一个目录。</p>
+
+<!--more-->
+
+<h4 id="mklink">mklink简介</h4>
+
+<p>Linux 下有一个叫符号链接的东东，是 ln 这个链接命令，mklink 和 ln 的功能几乎一样。在xp系统下，junction命令要用微软开发的小程序 junction.exe实现，从http://live.sysinternals.com/可以下载。现在Windows Vista之后的系统自带了mklink的功能。创建符号链接不仅可以当作快捷方式使用，最重要的是重定向链接符可以被程序读取然后重定向真正的位置，这是快捷方式无法做到的。</p>
+
+<p>win+r -&gt; cmd -&gt; mklink:</p>
+
+<div class="language-sh highlighter-rouge"><pre class="highlight"><code>MKLINK <span class="o">[[</span>/D] | <span class="o">[</span>/H] | <span class="o">[</span>/J]] Link Target
+        /D      创建目录符号链接。默认为文件符号链接。
+        /H      创建硬链接，而不是符号链接。
+        /J      创建目录联接。
+        Link    指定新的符号链接名称。
+        Target  指定新链接引用的路径<span class="o">(</span>相对或绝对<span class="o">)</span>。
+</code></pre>
+</div>
+
+<p>默认情况:</p>
+
+<ul>
+  <li>文件的符号链接，如没有参数指定，则创建文件的符号链接，删除文件链接不会影响目 标文件，且创建链接时允许目标文件不存在；</li>
+  <li>目录的符号链接（SYMLINKD） /D该参数可以创建目录的符号链接，删除目录链接不 会影响目标目录，且创建链接时允许目标目录不存在；</li>
+  <li>目录的软链接（JUNCTION） /J  该参数可以创建目录的软链接（联接），作用基本和符号链接类似，NT6系统的用户目录就是以这种形式存在的；</li>
+  <li>文件的硬链接 /H  该参数可以创建文件的硬链接，即一个文件的多个别名，NT6系统WinSXS目录下的大部分文件是以这个形式存在的；</li>
+</ul>
+
+<p>更多阅读:</p>
+
+<p><a href="http://wenku.baidu.com/view/56453dcfda38376baf1fae2c.html">mklink使用简介</a><br />
+<a href="http://bbs.csdn.net/topics/330135418">mklink的参数j和参数d在实际应用中的区别是什么?</a></p>
+
+<h4 id="mklink-1">mklink的应用</h4>
+
+<p>根据上面的介绍大家肯定知道我想干什么了，对！就是利用mklink为网盘加上多目录同步的功能。下面以Dropbox备份某软件的配置为例，其他的网盘都类似：<br />
+网盘的同步文件夹是<code class="highlighter-rouge">E:/u/Dropbox</code>，需要同步的文件夹是<code class="highlighter-rouge">D:/soft1/config</code>我们使用下面的命令:</p>
+
+<div class="language-sh highlighter-rouge"><pre class="highlight"><code>mklink /D <span class="s2">"E:/u/Dropbox/mydata"</span> <span class="s2">"D:/soft1/config"</span>
+</code></pre>
+</div>
+
+<p>这样E:/u/Dropbox/mydata就指向D:/mydata，相当于两个访问接口，删除<code class="highlighter-rouge">E:/u/Dropbox/mydata</code>不会影响到<code class="highlighter-rouge">D:/soft1/config</code>，反之则不行。按照这种方法就可以让Dropbox等网盘部分不同的文件夹了。</p>
+
+<p>但是现在也有个问题，你会发现只有Dropbox第一次启动或者重启时会同步，你的修改不能马上被Dropbox捕获到，Dropbox可以使用系统托盘菜单中的暂停和恢复同步来手动让Dropbox对修改进行捕获，有些网盘如酷盘就没有这个功能，只能利用重启软件来同步，很不方便。</p>
+
+<p>其实这里还有个方法就是：我们反着来，将真实文件夹(如<code class="highlighter-rouge">config</code>)放在Dropbox中，在<code class="highlighter-rouge">D:/soft1/</code>中创建软连接, 如命令：</p>
+
+<div class="language-sh highlighter-rouge"><pre class="highlight"><code>mklink /D <span class="s2">"D:/soft1/config"</span> <span class="s2">"E:/u/Dropbox/mydata"</span>
+</code></pre>
+</div>
+
+<p>这样的缺点就是其实根本没有改进网盘不支持多目录备份的问题，而是和系统开玩笑而已，但是这样确实很方便，我目前基本使用这种方法。</p>
+
+<h4 id="section">实例</h4>
+
+<p>举几个我使用mklink的例子：</p>
+
+<ol>
+  <li>备份hosts</li>
+  <li>备份一些软件的配置，如Notepad++，vim配置…</li>
+  <li>备份分散的代码(不推荐，推荐git来备份)</li>
+  <li>wamp中www下的目录分散到不同地方</li>
+  <li>…</li>
+</ol>
+
+</div>
+             <div class="prev_and_next">
+                
+                <div><strong>上一篇： <a href="/linux-file-permission.html" title="Linux 文件权限">Linux 文件权限</a></strong></div>
+                
+                
+                <div><strong>上一篇： <a href="/sh-execute-diff.html" title="shell脚本不同运行方式的区别">shell脚本不同运行方式的区别</a></strong></div>
+                
+             </div>
+             <div class="postunder"><div id="comments">
+        <div id="disqus_thread"></div>
+    <script type="text/javascript">
+        /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+        var disqus_shortname = 'ixxoo'; // required: replace example with your forum shortname
+
+        /* * * DON'T EDIT BELOW THIS LINE * * */
+        (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    <a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+
+</div></div>
+            </article>
+        </section>
+        <div class="clear"></div>
+
+                <footer id="footer">
+            <div class="foot">
+                <a id="gotop" href="javascript:void(0);" onclick="return false;">TOP</a>
+                <div id="copyright">Copyright &copy; 2016 <a href="https://www.ixxoo.me" target="_blank">likebeta</a>, All Rights Reserved, Power by <a href="https://github.com/likebeta" target="_blank">Github Pages</a> and <a href="https://github.com/mojombo/jekyll" target="_blank">Jekyll</a></div>
+            </div>
+            <div id="statistics" style="display:none">
+    <script type="text/javascript" src="//s20.cnzz.com/stat.php?id=5221832&web_id=5221832"></script>
+</div>
+        </footer>
+
+    </div>
+  <script type="text/javascript" color="255,0,0" opacity="0.3" count="99" src="/media/js/canvas-nest.min.js"></script>
+  </body>
+</html>

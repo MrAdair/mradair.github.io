@@ -1,0 +1,1395 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:atom="http://www.w3.org/2005/Atom">
+    <channel>
+        <title>likebeta's Blog</title>
+        <atom:link href="/feed.xml" rel="self" type="application/rss+xml"/>
+        <link></link>
+        <lastBuildDate>2016-07-16T08:27:38+08:00</lastBuildDate>
+        <webMaster>ixxoo.me@gmail.com</webMaster>
+        
+        <item>
+            <title>在Cocos2d-x v3中使用帧动画</title>
+            <link>/animations-and-spritesheets-in-cocos2d-x.html</link>
+            <pubDate>2016-07-02T00:00:00+08:00</pubDate>
+            <author>likebeta</author>
+            <guid>/animations-and-spritesheets-in-cocos2d-x</guid>
+            <content:encoded><![CDATA[<p>你将会学到以下几点:</p>
+
+<ol>
+  <li>为何要使用精灵图表</li>
+  <li>在不同的设备和分辨率中设计和运行游戏</li>
+  <li>创建优化的精灵图表</li>
+  <li>创建动画</li>
+  <li>播放角色动画</li>
+</ol>
+
+<p>一句话就是: 一次开发， 到处运行(赚钱)</p>
+
+<!--more-->
+
+<h4 id="cocos2d-x">安装cocos2d-x</h4>
+
+<p>以mac上的xcode为例，其他平台可以参考官方文档。</p>
+
+<p>首先从<code class="highlighter-rouge">http://www.cocos2d-x.org/download</code>下载<code class="highlighter-rouge">cocos2d-x</code>， 本文以3.9为例，除了多边形部分也适用老版本。</p>
+
+<p>解压，然后移动到你需要放置的目录， 打开命令行，切换到此目录, 执行以下命令：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>cd cocos2d-x-3.9
+python setup.py
+</code></pre>
+</div>
+
+<p>安装脚本会根据你的环境提示输入相应的目录; 如果需要开发<code class="highlighter-rouge">android</code>程序， 你需要输入<code class="highlighter-rouge">android</code>的<code class="highlighter-rouge">sdk</code>和<code class="highlighter-rouge">ndk</code>的地址，如果只是开发MacOS或者iOS程序， 直接<strong>enter</strong>略过就行了。</p>
+
+<p>注意：<code class="highlighter-rouge">cocos2d-x</code>需要<code class="highlighter-rouge">python 2.7</code>，<code class="highlighter-rouge">MacOS</code>上已经自带，<code class="highlighter-rouge">windows</code>需要自己去<code class="highlighter-rouge">python.org</code>下载， 注意下载32位的版本， 64位的<code class="highlighter-rouge">cocos2d-x</code>会出现各种问题。</p>
+
+<p>关闭此命令行， 然后再打开， 你会发现已经多了一个命令:<code class="highlighter-rouge">cocos</code>, 你可以用它来创建工程。</p>
+
+<h4 id="section">创建第一个游戏</h4>
+
+<p>使用以下命令创建一个空工程：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>cocos new -l cpp -d ~/cocos2d-x-games Cocos2dx-SpriteSheetTutorial
+</code></pre>
+</div>
+
+<blockquote>
+  <p><strong>注意</strong>：如果出现这个错误：<code class="highlighter-rouge">ValueError: unknown local: UTF-8</code></p>
+
+  <p>设置下locale变量:</p>
+
+  <div class="highlighter-rouge"><pre class="highlight"><code>export LC_ALL=en_US.UTF-8
+export LANG=en_US.UTF-8
+</code></pre>
+  </div>
+
+  <p>然后重新运行创建的命令。</p>
+</blockquote>
+
+<p>该命令会新建一个<code class="highlighter-rouge">cocos2d-x</code>工程，位于<code class="highlighter-rouge">~/cocos2d-x-games</code>下的子目录<code class="highlighter-rouge">Cocos2dx-SpriteSheetTutorial</code>中。</p>
+
+<p>该工程是<code class="highlighter-rouge">c++</code>， 你也可以创建<code class="highlighter-rouge">lua</code>和<code class="highlighter-rouge">javascript</code>工程， 本教程以c++为例。</p>
+
+<p><code class="highlighter-rouge">Cocos2dx-SpriteSheetTutorial</code>下面有一些列以<code class="highlighter-rouge">proj.</code>开头的目录， 这些目录对应不同的开发环境，包括<code class="highlighter-rouge">Visual Studio</code>，<code class="highlighter-rouge">XCode</code>, 已经一些其他平台。</p>
+
+<p>选择你最喜欢的来开发就好了， 当需要支持其他平台的时候， 随时都可以在其他平台编译运行。</p>
+
+<p>开发的时候，最重要的事情就是避免使用平台相关的特殊代码和库， cocos2d-x底层已经为我们做好了跨平台。</p>
+
+<p>这篇教程主要是针对mac下的xcode来写的， 你可以很简单的按照教程在其他平台上做，主要就是加入文件和打开模拟器稍微有点不同。</p>
+
+<p>打开工程， 编译运行， 你会看到一个显示着<code class="highlighter-rouge">hello world</code>的程序。</p>
+
+<p>该程序包含了两个类：<code class="highlighter-rouge">AppDelegate</code>和<code class="highlighter-rouge">HelloWorldScene</code></p>
+
+<h4 id="section-1">为何要使用精灵图表</h4>
+
+<p>如果你想在游戏中使用不同的精灵和动画，笨方法就是把它们全部添加到工程， 然后循环加载。</p>
+
+<p>这个方法有几个问题：</p>
+
+<ol>
+  <li>加载每个文件都需要耗费时间</li>
+  <li>每个精灵都需要单独的加载到显存中</li>
+  <li>切换纹理代价很大</li>
+  <li>精灵无法优化，减少不必要的绘制</li>
+</ol>
+
+<p>来看下面的精灵， 这是个角色走动的动画，下面章节要用到它。精灵图片中的空白区域是为了对其动画相位。</p>
+
+<p><img src="images/2016/animationphases.png" alt="animationphases.png" /></p>
+
+<p>透明区域似乎不包含任何有用的信息，但是GPU却不关心这一点。它会逐像素的进行渲染，不管是否可见。如上图透明区域达到了68%。</p>
+
+<p>最简单的方法就是缩减绘制区域，让它只包含非透明区域，防止GPU对透明区域的绘制。这种方法可以减少24%的透明区域。</p>
+
+<p>更好的方法就是用多边形标识出非透明区域。</p>
+
+<p>好消息是： 当你使用TexturePacker的时候， 不需要关心这些，它会自动为精灵裁剪出cocos2d-x可以读取识别的矩形和多边形区域。</p>
+
+<p><img src="images/2016/trim-and-polygon-trim.png" alt="trim-and-polygon-trim.png" /></p>
+
+<h4 id="section-2">多分辨率设计</h4>
+
+<p>cocos2d-x是一个具有高度的可移植性的游戏框架，它已经对不同设备的支持做了很多工作，同样的代码可以运行在所有平台。</p>
+
+<p>但是你需要关心设计问题，有些设备(比如iPad)的宽高比是4:3, 有些是16:9， 还有一些介于他们之间的奇葩比例。</p>
+
+<h4 id="section-3">手机统计</h4>
+
+<p>新发布的手机都有很高的分辨率，但是还是有很多老手机存在。下面图标展示了截止到2015底手机和平板的屏幕分辨率统计，有将近69%的设备的分辨率等于或者低于1280 x 720.</p>
+
+<p><img src="images/2016/device-stats.png" alt="device-stats.png" /></p>
+
+<p>新机和平板都具有很高分辨率甚至全高清的分辨率，但是只占了30%.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Model</th>
+      <th style="text-align: left">Resolution</th>
+      <th style="text-align: left">Aspect Ratio</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">iPhone 6s</td>
+      <td style="text-align: left">1334 x 750</td>
+      <td style="text-align: left">16:9</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">iPhone 6s Plus</td>
+      <td style="text-align: left">2208 x 1242</td>
+      <td style="text-align: left">16:9</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">HTC One M8</td>
+      <td style="text-align: left">1920 x 1080</td>
+      <td style="text-align: left">16:9</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Samsung Galaxy S6</td>
+      <td style="text-align: left">2560 x 1440</td>
+      <td style="text-align: left">16:9</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Sony Xperia Z3</td>
+      <td style="text-align: left">1920 x 1080</td>
+      <td style="text-align: left">16:9</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">iPad (retina)</td>
+      <td style="text-align: left">2048 x 1536</td>
+      <td style="text-align: left">4:3</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Microsoft Surface Pro 4</td>
+      <td style="text-align: left">2736 x 1824</td>
+      <td style="text-align: left">3:2</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Amazon Kindle Fire HD 7</td>
+      <td style="text-align: left">1280 x 800</td>
+      <td style="text-align: left">16:10</td>
+    </tr>
+  </tbody>
+</table>
+
+<h4 id="section-4">设计的两个难点</h4>
+
+<p>两个难点：不同的分辨率和不同的屏幕宽高比。</p>
+
+<p><strong>不同的分辨率</strong></p>
+
+<p>不同的分辨率其实并不算是问题，只要你的游戏不包含太多复杂的对象和小的字体。你可以使用高分辨率来设计游戏， 然后通过缩放来适配小分辨率的设备。</p>
+
+<p>对于低性能的小分辨率设备，内存可能是个问题。对于这种设备比较好的方法就是为他们加载缩放版本的精灵图表。一个2048x2048分辨率真色彩精灵需要16M内存，如果缩放50%就只有4M了。</p>
+
+<p>TexturePacker可以快速创建各种缩放版本的精灵图表。</p>
+
+<p><strong>不同的宽高比</strong></p>
+
+<p>不同的宽高比是个棘手的问题，因为他会影响游戏的运行效果。有3中处理方法：</p>
+
+<ol>
+  <li>为4:3和16:9分别设计一套UI</li>
+  <li>以16:9或者4:3来设计，然后加上黑边</li>
+  <li>以16:9来设计，通过缩放来填充适配4:3</li>
+</ol>
+
+<p><img src="images/2016/black-bars.png" alt="black-bars.png" /></p>
+
+<p style="text-align:center">使用黑边， 分数显示在外面</p>
+
+<p><img src="images/2016/extended-scene.png" alt="extended-scene.png" /></p>
+
+<p style="text-align:center">缩放场景</p>
+
+<p>第一种方法可能是最好的，但是会增加大量的工作， 并且会影响到游戏展现，带来更大的挑战。</p>
+
+<p>第二种看起来有点像90年代的设计。</p>
+
+<p>我比较推荐第三种，它给玩家一致的体验。本教程的资源是为4:3宽高比做的，但是内容主要是针对16:9。</p>
+
+<h4 id="texturepacker">使用TexturePacker来创建精灵图表</h4>
+
+<p>首先从这里下载安装：https://www.codeandweb.com/texturepacker/download</p>
+
+<p>拖拽cityscene文件夹到左侧面板，TexturePacker会添加包含的精灵到表中，并且保持文件的结构。当添加或者删除精灵图片是也会自动更新精灵表。</p>
+
+<p><img src="images/2016/texturepacker-add-sprites.png" alt="texturepacker-add-sprites.png" /></p>
+
+<p><code class="highlighter-rouge">Data Format</code>选择<code class="highlighter-rouge">cocos2d-x</code>, 不要选择<code class="highlighter-rouge">cocos2d</code>,<code class="highlighter-rouge">cocos2d</code>不支持多边形打包。</p>
+
+<p><img src="images/2016/texturepacker-select-cocos2d-x.png" alt="texturepacker-select-cocos2d-x.png" /></p>
+
+<p>开启多边形支持:<code class="highlighter-rouge">Trim mode</code>选择<code class="highlighter-rouge">polygon</code>, 你可以通过调节<code class="highlighter-rouge">Tracer tolerance</code>来控制精灵的多边形顶点数量，越多的顶点就可以越精确的标识非空白区域，减少绘制量， 但是尽量别控制顶点的数量， 以为顶点的计算需要消耗CPU的资源。</p>
+
+<p>因为背景图片是个非透明矩形，所以这个精灵表过度绘制依然达到了95%。</p>
+
+<p><img src="images/2016/texturepacker-polygon-sprites.png" alt="texturepacker-polygon-sprites.png" /></p>
+
+<p>为不同的分辨率设备添加缩放比例，右边面板点击<code class="highlighter-rouge">Scaling variants</code>选择<code class="highlighter-rouge">cocos2d-x HDR/HD/SD</code>，点击<code class="highlighter-rouge">Apply</code>，你会看到三个缩放比例:<code class="highlighter-rouge">/HDR/</code>不缩放，<code class="highlighter-rouge">/HD/</code>缩放比例 0.5 和<code class="highlighter-rouge">/SD/</code>缩放比例0.25。如果你不是你想要的， 你可以删除它们，点击<code class="highlighter-rouge">Close</code>返回精灵表。</p>
+
+<p>你会看到3个tab标签，点击标签可以预览相应缩放比例的精灵表。</p>
+
+<p><img src="images/2016/texturepacker-scaling-variants.png" alt="texturepacker-scaling-variants.png" /></p>
+
+<p>点击<code class="highlighter-rouge">Data file</code>后面的文件夹图标，将文件命名<code class="highlighter-rouge">cityscene.png</code>， 并保存在你工程下面的res目录中。你会得到一个错误，提示你需要在文件名中包含一个占位符<code class="highlighter-rouge"><span class="p">{</span><span class="err">v</span><span class="p">}</span></code>。 将文件名从<code class="highlighter-rouge">.../res/cityscene.plist</code>改为<code class="highlighter-rouge">.../res/{v}/cityscene.plist</code>。当保存文件的时候，这里的占位符会被替换成缩放比例的名字。</p>
+
+<p>点击工具栏中的<code class="highlighter-rouge">Publish sprite sheet</code>，你将会在工程中看到6个文件：</p>
+
+<ul>
+  <li>res
+    <ul>
+      <li>HDR
+        <ul>
+          <li>cityscene.plist</li>
+          <li>cityscene.png</li>
+        </ul>
+      </li>
+      <li>HD
+        <ul>
+          <li>cityscene.plist</li>
+          <li>cityscene.png</li>
+        </ul>
+      </li>
+      <li>SD
+        <ul>
+          <li>cityscene.plist</li>
+          <li>cityscene.png</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<h4 id="appdelegate">AppDelegate中的启动代码</h4>
+
+<p>现在让我们开始写点代码吧。在开始使用精灵图表前，我们先来做点基础工作。如果<code class="highlighter-rouge">AppDelegate</code>中代码处理的好的话，可以让你游戏和分辨率保持解耦。</p>
+
+<h4 id="section-5">启动和分辨率处理</h4>
+
+<p>用以下代码替换<code class="highlighter-rouge">AppDelegate.h</code>中的代码:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>#ifndef  _APP_DELEGATE_H_
+#define  _APP_DELEGATE_H_
+
+#include "cocos2d.h"
+
+class  AppDelegate : private cocos2d::Application
+{
+    public:
+        virtual void initGLContextAttrs();
+        virtual bool applicationDidFinishLaunching();
+        virtual void applicationDidEnterBackground();
+        virtual void applicationWillEnterForeground();
+
+    private:
+        void initOpenGL();
+        void initMultiResolution();
+        void initDirector();
+        void createAndRunScene();
+};
+
+#endif
+</code></pre>
+</div>
+
+<p>程序会在不同的时机调用这些<code class="highlighter-rouge">public</code>虚函数，你需要实现定义在<code class="highlighter-rouge">ApplicationProtocol</code>中的纯虚函数。这里的<code class="highlighter-rouge">private</code>函数帮助我们更好的组织整个过程。</p>
+
+<p>删除并用以下代码替换<code class="highlighter-rouge">AppDelegate.cpp</code>中的内容：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>#include "AppDelegate.h"
+#include "HelloWorldScene.h"
+
+USING_NS_CC;
+
+static cocos2d::Size designResolutionSize = cocos2d::Size(2048, 1536);
+
+static cocos2d::Size smallResolutionSize = cocos2d::Size(512, 384);
+static cocos2d::Size mediumResolutionSize = cocos2d::Size(1024, 768);
+static cocos2d::Size largeResolutionSize = cocos2d::Size(2048, 1536);
+</code></pre>
+</div>
+
+<p><code class="highlighter-rouge">designResolutionSize</code>表示游戏的设计大小。你可以根据自己的需要随意设置它，不过业界用的比较多的下面两个值：</p>
+
+<ol>
+  <li>(512, 384): 在低分辨率设备中1单元对应1像素</li>
+  <li>(2048x1536): 在你的设计中1单元对应1像素</li>
+</ol>
+
+<p>在cocos2d-x中想做到像素级别的完美设计很困难，最简单的原因，如果你想在Android设备上运行游戏， 你就需要面对大量的不同分辨率设备，就连iOS的设备大小和比例也都不同。</p>
+
+<p>我个人比较建议使用高分辨率作为<code class="highlighter-rouge">designResolutionSize</code>, 因为这样能更容易的在图形编辑器中权衡和设置大小和位置。 但是如果一个对象放置的坐标位置不能被4整除，可能会低分辨率设备上有点误差。但是考虑到缩放，其实并不是个大问题。</p>
+
+<p><code class="highlighter-rouge">smallResolutionSize</code>,<code class="highlighter-rouge">mediumResolutionSize</code>and<code class="highlighter-rouge">largeResolutionSize</code>这3个值表示不同屏幕的设备提供的缩放的设计尺寸。他们会对应<code class="highlighter-rouge">TexturePacker</code>打包成的缩放版的精灵表。</p>
+
+<p>添加下面的函数， 它负责加载缩放版本的图片资源。</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>void AppDelegate::initMultiResolution()
+{
+    auto director = Director::getInstance();
+    auto glview = director-&gt;getOpenGLView();
+
+    glview-&gt;setDesignResolutionSize(
+            designResolutionSize.width,
+            designResolutionSize.height,
+            ResolutionPolicy::NO_BORDER
+    );
+
+    ...
+</code></pre>
+</div>
+
+<p><code class="highlighter-rouge">setDesignResolutionSize</code>用来设置游戏的设计尺寸，<code class="highlighter-rouge">ResolutionPolicy::NO_BORDER</code>表示场景会被拉升填满整个屏幕， 该参数还有几个值可以选择：</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>值</th>
+      <th>描述</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>EXACT_FIT</td>
+      <td>拉升填充整个屏幕，但不是宽高等比拉升，某些情况整个画面是扭曲变形的。</td>
+    </tr>
+    <tr>
+      <td>NO_BORDER</td>
+      <td>等比拉升，填满整个屏幕，可能超出屏幕外，有些部分不可见</td>
+    </tr>
+    <tr>
+      <td>SHOW_ALL</td>
+      <td>等比拉升，但是不会超出屏幕外，如果比例不一样，就用黑边填充两边的空白区域</td>
+    </tr>
+    <tr>
+      <td>FIXED_HEIGHT</td>
+      <td>以高为准，宽进行缩放适配</td>
+    </tr>
+    <tr>
+      <td>FIXED_WIDTH</td>
+      <td>以宽为准，高进行缩放适配</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>实际使用中<code class="highlighter-rouge">EXACT_FIT</code>基本上都不会采用，<code class="highlighter-rouge">NO_BORDER</code>可能是最简单的方法了。</p>
+
+<p>继续补充<code class="highlighter-rouge">initMultiResolution()</code>函数：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>...
+
+    std::vector&lt;std::string&gt; searchPaths;
+    float scaleFactor = 1.0f;
+    Size frameSize = glview-&gt;getFrameSize();
+
+    if (frameSize.height &gt; mediumResolutionSize.height)
+    {
+        searchPaths.push_back("res/HDR");
+        scaleFactor = largeResolutionSize.height/designResolutionSize.height;
+    }
+    else if (frameSize.height &gt; smallResolutionSize.height)
+    {
+        searchPaths.push_back("res/HD");
+        scaleFactor = mediumResolutionSize.height/designResolutionSize.height;
+    }
+    else
+    {
+        searchPaths.push_back("res/SD");
+        scaleFactor = smallResolutionSize.height/designResolutionSize.height;
+    }
+
+    director-&gt;setContentScaleFactor(scaleFactor);
+    FileUtils::getInstance()-&gt;setSearchPaths(searchPaths);
+}
+</code></pre>
+</div>
+
+<p><code class="highlighter-rouge">getFrameSize()</code>可以得到设备的显示尺寸，与预设的几种尺寸的高度进行比较来选择尽量高分辨率的设计方案。</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>高</th>
+      <th>精灵表</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>h &lt; 512</td>
+      <td>SD</td>
+    </tr>
+    <tr>
+      <td>513 &lt; h &lt; 1024</td>
+      <td>HD</td>
+    </tr>
+    <tr>
+      <td>h &gt; 1024</td>
+      <td>HDR</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>代码还设置了资源的搜索路径，这样的好处是不需要硬编码，只要指定加载<code class="highlighter-rouge">cityscene.plist</code>, cocos2d-x 就会为我们加载正确的文件。</p>
+
+<p>还有一些模板代码，我们直接复制就行了，比如用来创建<code class="highlighter-rouge">OpenGL view</code>的。</p>
+
+<h4 id="appdelegate-1">AppDelegate添加更多代码</h4>
+
+<p>下面的一坨代码也必须要添加进去，用来响应游戏进入前台/切入后台。</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>void AppDelegate::initOpenGL()
+{
+    auto director = Director::getInstance();
+    auto glview = director-&gt;getOpenGLView();
+    if(!glview)
+    {
+        #if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32) ||
+            (CC_TARGET_PLATFORM == CC_PLATFORM_MAC) ||
+            (CC_TARGET_PLATFORM == CC_PLATFORM_LINUX)
+        glview = GLViewImpl::createWithRect("Cocos2dx-SpriteSheetTutorial",
+            Rect(0, 0, designResolutionSize.width, designResolutionSize.height));
+        #else
+        glview = GLViewImpl::create("Cocos2dx-SpriteSheetTutorial");
+        #endif
+        director-&gt;setOpenGLView(glview);
+    }
+}
+</code></pre>
+</div>
+
+<p>下面代码用来初始化<code class="highlighter-rouge">Director</code>, 设置刷新帧率，开启右下角显示帧率等统计信息。</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>void AppDelegate::initDirector()
+{
+    auto director = Director::getInstance();
+    director-&gt;setAnimationInterval(1.0 / 60);
+    director-&gt;setDisplayStats(true);
+}
+</code></pre>
+</div>
+
+<p>下面代码创建并运行游戏场景，下面还需要为场景创建<code class="highlighter-rouge">HelloWorld</code>层。</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>void AppDelegate::createAndRunScene()
+{
+    auto scene = HelloWorld::createScene();
+    Director::getInstance()-&gt;runWithScene(scene);
+}
+</code></pre>
+</div>
+
+<p>下面方法会在cocos2d-x初始化完成后调用前面创建的所有方法。</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>bool AppDelegate::applicationDidFinishLaunching()
+{
+    initOpenGL();
+    initDirector();
+    initMultiResolution();
+    createAndRunScene();
+    return true;
+}
+</code></pre>
+</div>
+
+<p>下面的两个函数会在你切入后台或者进入前台的时候调用。可以暂停所有动画和音效，也可以停止一些运算等等。</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>void AppDelegate::applicationDidEnterBackground()
+{
+    Director::getInstance()-&gt;stopAnimation();
+    // SimpleAudioEngine::getInstance()-&gt;pauseBackgroundMusic();
+}
+
+void AppDelegate::applicationWillEnterForeground()
+{
+    Director::getInstance()-&gt;startAnimation();
+    // SimpleAudioEngine::getInstance()-&gt;resumeBackgroundMusic();
+}
+</code></pre>
+</div>
+
+<p>最后一个需要的函数是<code class="highlighter-rouge">initGLContextAttrs()</code>, 它用来设置一些OpenGL绘制时的上下文环境。如果没有特殊的需求， 最好别修改它。</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>void AppDelegate::initGLContextAttrs()
+{
+    //set OpenGL context attributions,now can only set six attributions:
+    //red,green,blue,alpha,depth,stencil
+    GLContextAttrs glContextAttrs = {8, 8, 8, 8, 24, 8};
+    GLView::setGLContextAttrs(glContextAttrs);
+}
+</code></pre>
+</div>
+
+<h4 id="section-6">使用精灵图表</h4>
+
+<p>After the less interesting tasks of initializing the app you’ll now get the 精灵图表 to work.
+经过一些初始化工作， 现在可以使用精灵图表了。</p>
+
+<p>在<code class="highlighter-rouge">HelloWorldScene.h</code>中添加以下代码：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>#ifndef __HELLOWORLD_SCENE_H__
+#define __HELLOWORLD_SCENE_H__
+
+#include "cocos2d.h"
+
+class HelloWorld : public cocos2d::Layer
+{
+public:
+    static cocos2d::Scene* createScene();
+    virtual bool init();
+    CREATE_FUNC(HelloWorld);
+
+private:
+    cocos2d::Vector getAnimation(const char *format, int count);
+};
+
+#endif
+</code></pre>
+</div>
+
+<p>这里包含了是个函数声明：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>createScene()
+</code></pre>
+</div>
+
+<p>用来创建一个包含<code class="highlighter-rouge">HelloWorld</code>层的场景。场景类似一个容器，包含了众多的层以及游戏数据。它会在<code class="highlighter-rouge">AppDelegate::createAndRunScene</code>中的<code class="highlighter-rouge">runWithScene()</code>被<code class="highlighter-rouge">Director</code>使用。</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>init()
+</code></pre>
+</div>
+
+<p>Init用来初始化<code class="highlighter-rouge">HelloWorld</code>对象，并创建游戏对象和动画。</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>CREATE_FUNC(HelloWorld)
+</code></pre>
+</div>
+
+<p><code class="highlighter-rouge">CREATE_FUNC</code>是一个宏， 创建了一个静态方法<code class="highlighter-rouge">HelloWorld::create()</code>, 这个方法会创建一个<code class="highlighter-rouge">HelloWorld</code>对象，进行内存管理， 然后调用<code class="highlighter-rouge">init()</code>。</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>getAnimation()
+</code></pre>
+</div>
+
+<p>此方法封装了从精灵表创建动画。</p>
+
+<p>下面来看看<code class="highlighter-rouge">HelloWorldScene.cpp</code>。</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>#include "HelloWorldScene.h"
+
+USING_NS_CC;
+
+Scene* HelloWorld::createScene()
+{
+    auto scene = Scene::create();
+    auto layer = HelloWorld::create();
+    scene-&gt;addChild(layer);
+    return scene;
+}
+</code></pre>
+</div>
+
+<p>如上所述：此方法封装了场景的创建，添加<code class="highlighter-rouge">HelloWorld</code>层，然后返回场景给<code class="highlighter-rouge">Director</code>使用。</p>
+
+<h4 id="section-7">添加静态背景</h4>
+
+<blockquote>
+  <p><strong>不用使用 SpriteBatchNode</strong> 。</p>
+
+  <p>在<code class="highlighter-rouge">Cocos2d-x V2</code>中一般会使用<code class="highlighter-rouge">CCSpriteBatchNode</code>来提高精灵表的性能，为了兼容，此方法在<code class="highlighter-rouge">Cocos2d-x V3</code>中也存在，叫做<code class="highlighter-rouge">SpriteBatchNode</code>, 但hi已经被标记为废弃。</p>
+
+  <p><code class="highlighter-rouge">Cocos2d-x V3</code>中会自动进行批处理，不需要显示调用。多边形的精灵会被分割成小块，因为批处理只支持矩形。</p>
+</blockquote>
+
+<p>下一个函数是<code class="highlighter-rouge">init()</code>:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>bool HelloWorld::init()
+{
+    if ( !Layer::init() )
+    {
+        return false;
+    }
+
+    SpriteFrameCache::getInstance()-&gt;addSpriteFramesWithFile("cityscene.plist");
+
+    Vec2 origin = Director::getInstance()-&gt;getVisibleOrigin();
+    Vec2 visibleSize = Director::getInstance()-&gt;getVisibleSize();
+
+    // background
+    auto background = Sprite::createWithSpriteFrameName("background.png");
+    background-&gt;setPosition(origin.x + visibleSize.x / 2,origin.y + visibleSize.y/2);
+    this-&gt;addChild(background);
+
+    return true;
+}
+</code></pre>
+</div>
+
+<p>首先调用父类初始化。</p>
+
+<p>使用前你需要先加载精灵表，你可以使用<code class="highlighter-rouge">addSpriteFramesWithFile</code>来加载plist文件，plist文件中包含了精灵表信息，<code class="highlighter-rouge">cocos2d-x</code>会被自动加载。</p>
+
+<p>注意这里并没有分辨率相关的处理，<code class="highlighter-rouge">AppDelegate</code>中的代码保证了<code class="highlighter-rouge">addSpriteFramesWithFile</code>会加载对应的资源。</p>
+
+<p>下面两行返回了屏幕原点和尺寸，这些坐标是依据设计尺寸的值。下面可以使用这两个值来让背景居中显示。</p>
+
+<p>调用<code class="highlighter-rouge">Sprite::createWithSpriteFrameName()</code>来创建精灵，参数是加载到<code class="highlighter-rouge">TexturePacker</code>中是使用的名字。</p>
+
+<p>设置背景居中， 在4:3设备中你会看到更多的天空和街道，而在16:9的设备中是居中的。</p>
+
+<p>最后一行将背景对象添加到层中。</p>
+
+<p>编译运行， 你会看到如下场景：</p>
+
+<p><img src="images/2016/gamescene-just-background.png" alt="gamescene-just-background.png" /></p>
+
+<h4 id="section-8">播放动画</h4>
+
+<p><code class="highlighter-rouge">cocos2d-x</code>中你需要告诉她使用哪些精灵帧来播放动画。最简单的方法就是使用下面的函数，他返回精灵帧组成的数组：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>Vector HelloWorld::getAnimation(const char *format, int count)
+{
+    auto spritecache = SpriteFrameCache::getInstance();
+    Vector animFrames;
+    char str[100];
+    for(int i = 1; i &lt;= count; i++)
+    {
+        sprintf(str, format, i);
+        animFrames.pushBack(spritecache-&gt;getSpriteFrameByName(str));
+    }
+    return animFrames;
+}
+</code></pre>
+</div>
+
+<p>这个函数以给定的格式从精灵表中检索精灵帧，你可以这样调用：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>Vector frames = getAnimation("capguy/walk/%04d.png", 8);
+</code></pre>
+</div>
+
+<p><code class="highlighter-rouge">%04d</code>格式字符串会生成一0填充的4个数字前缀的字符串：0001, 0002, 0003,…</p>
+
+<p>调用此函数会返回8个精灵帧的数组：capguy/walk/0001.png,… capguy/walk/0008.png</p>
+
+<p>在<code class="highlighter-rouge">HelloWorldScene.cpp</code>中的<code class="highlighter-rouge">init()</code>返回前添加添加以下代码：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>// sprite
+auto frames = getAnimation("capguy/walk/%04d.png", 8);
+auto sprite = Sprite::createWithSpriteFrame(frames.front());
+background-&gt;addChild(sprite);
+sprite-&gt;setPosition(100,620);
+
+auto animation = Animation::createWithSpriteFrames(frames, 1.0f/8);
+sprite-&gt;runAction(RepeatForever::create(Animate::create(animation)));
+</code></pre>
+</div>
+
+<p>第一行就是获取精灵帧数组，然后用第一帧创建一个精灵。</p>
+
+<p>将精灵作为子节点加到背景中，这里不是作为场景的子节点。确保将精灵添加到背景上正确的位置。</p>
+
+<p>第二块代码用精灵帧创建了动画，并设置帧率为<code class="highlighter-rouge">1.0f/8</code>， 一秒播放8帧。 注意这里是<code class="highlighter-rouge">1.0f/8</code>而不是<code class="highlighter-rouge">1/8</code>，后者会是一个整型，这里就是0，动画永远都不会被运行。</p>
+
+<p>最后一行组合了3个函数的调用：</p>
+
+<ul>
+  <li>创建一个动画对象，用来播放动画</li>
+  <li>创建一个<code class="highlighter-rouge">RepeatForever</code>循环播放动画</li>
+  <li>将<code class="highlighter-rouge">RepeatForever</code>对象传递给精灵执行</li>
+</ul>
+
+<p>编译运行，你会看到一个<code class="highlighter-rouge">Capguy</code>在原地行走。</p>
+
+<p><img src="images/2016/gamescene-capguy.png" alt="gamescene-capguy.png" /></p>
+
+<h4 id="section-9">让精灵移动起来</h4>
+
+<p>我们来让<code class="highlighter-rouge">Capguy</code>从左往右走起来，<code class="highlighter-rouge">cocos2d-x</code>可以使用一个<code class="highlighter-rouge">MoveTo</code>的动作。它有两个参数: 持续时间(秒)和目标位置坐标。</p>
+
+<p>在<code class="highlighter-rouge">HelloWorldScene.cpp</code>中的<code class="highlighter-rouge">init()</code>返回前添加添加以下代码：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>auto movement = MoveTo::create(10, Vec2(2148,620));
+auto resetPosition = MoveTo::create(0, Vec2(-150,620));
+auto sequence = Sequence::create(movement, resetPosition, NULL);
+sprite-&gt;runAction(RepeatForever::create(sequence));
+</code></pre>
+</div>
+
+<p><code class="highlighter-rouge">resetPosition</code>重置<code class="highlighter-rouge">Capguy</code>的位置成屏幕最左边, 时间为0会立马完成动作。</p>
+
+<p><code class="highlighter-rouge">Sequence</code>创建了一个动作序列， 会一个接一个的执行， 你可以同时添加几个动作， 但是要保证以NULL结尾。</p>
+
+<p>最后，将动作使用<code class="highlighter-rouge">RepeatForever</code>包裹传递给精灵执行。</p>
+
+<p>编译运行， 你会看到<code class="highlighter-rouge">Capguy</code>在街上散步。</p>
+
+<p><img src="images/2016/gamescene-animated.png" alt="gamescene-animated.png" /></p>
+
+<p>原文： <a href="https://www.codeandweb.com/blog/2015/12/15/animations-and-spritesheets-in-cocos2d-x">Tutorial: Using sprite sheet animations in cocos2d-x V3</a></p>
+]]></content:encoded>
+        </item>
+        
+        <item>
+            <title>分割还原TexturePacker打包的小图</title>
+            <link>/texture-unpacker.html</link>
+            <pubDate>2016-06-10T00:00:00+08:00</pubDate>
+            <author>likebeta</author>
+            <guid>/texture-unpacker</guid>
+            <content:encoded><![CDATA[<p>最近练手cocos2d-js, 苦于没有美术素材, 东拼西凑想弄个基本的界面, 网上扒了一些图片, 大部分都是只要其中的一个小图, 所以想着有没有简单的将TexturePacker打包的大图片切割还原成小图片, 然后自己打包需要的一部分小图.</p>
+
+<!--more-->
+
+<p>因为网上找的图片都是有plist, 应该是有办法的. 网上搜了下, 有几个实现了我想要的功能, 下载使用都有各种问题. 仔细看了下, 我这边的plist中的format是3, 找到的现成的都是对老格式做的处理.</p>
+
+<p>有一个貌似挺厉害的, 支持没有plist的情况下分割出小图, 不过已经收费了, 还是自己动手吧.</p>
+
+<p>TexturePacker打包的plist其实挺简单的, 就几个属性, 顾名思义大部分都能猜到含义, 主要就是spriteOffset没整明白, 开始搞错以为是左上角的偏移点, 最后搜了一篇介绍老格式文章-<a href="http://blog.csdn.net/ranky2009/article/details/19566479">cocos2dx plist中各个属性含义</a>, 弄明白了原来是中心的偏移量.</p>
+
+<p>Python借助PIL的Image实现起来很简单, 稍作处理就可以, 处理textureRotated的时候遇到点问题, 很好解决. 基本上实现了我要的功能, 没有对老格式和plist以外的格式支持, 后面有需求再加上.</p>
+
+<p>源码和示例在这里: <a href="https://github.com/likebeta/TextureUnPacker">TextureUnPacker</a></p>
+
+]]></content:encoded>
+        </item>
+        
+        <item>
+            <title>树莓派之初体验</title>
+            <link>/raspberry-pi-first-time.html</link>
+            <pubDate>2015-11-08T00:00:00+08:00</pubDate>
+            <author>likebeta</author>
+            <guid>/raspberry-pi-first-time</guid>
+            <content:encoded><![CDATA[<p>前段时间入手了一个树莓派2，ARM的板子虽然比不上x86的性能， 极低的功耗和4核1G的配置还是很不错的，比较适合24小时运行， 拿来跑个脚本，架个NAS或者下载机都可以。</p>
+
+<!--more-->
+
+<h4 id="section">安装系统</h4>
+
+<p>去<a href="https://www.raspberrypi.org/">树莓派官网</a>先这个镜像，推荐<a href="https://www.raspberrypi.org/downloads/raspbian/">raspbian</a>，除了平台的区别基本上就可以当做debian来玩。</p>
+
+<p>Mac或者Linux下直接用<code class="highlighter-rouge">dd</code>向sd卡写入镜像， Windows下可以借助<code class="highlighter-rouge">Win32DiskImager</code>， 网上教程很多， 不细说。目前镜像都比较友好， 第一次启动的时候会进入配置界面， 按照提示一步一步来，很简单； 当然如果后面还想用这样的界面配置， 可以直接调用<code class="highlighter-rouge">raspi-config</code>。</p>
+
+<h4 id="section-1">配置网络</h4>
+
+<p>如果特殊修改网络的情况下， 第一次启动后应该已经连上网了， 此时是DHCP获取到的动态ip， 下面来给它配置个静态ip。</p>
+
+<p><code class="highlighter-rouge">vim /etc/network/interfaces</code>， 按照自己的网络修改， 大致如下：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>auto lo
+iface lo inet loopback
+
+# dns
+dns-nameservers 119.29.29.29
+dns-nameservers 223.5.5.5
+
+auto eth0
+allow-hotplug eth0
+iface eth0 inet static
+address 192.168.2.125
+gateway 192.168.2.1
+netmask 255.255.255.0
+network 192.168.2.0
+broadcast 192.168.2.255
+</code></pre>
+</div>
+
+<p><code class="highlighter-rouge">/etc/init.d/networking restart</code>重启网络， 现在树莓派已经是固定IP了， 最好在路由器上绑定下避免ip冲突。</p>
+
+<h4 id="section-2">无线网络</h4>
+
+<p>可以通过安装个usb无线网卡来让树莓派支持无线网，不用局限于网线的束缚，这样更加便携， 通过配置可以让树莓派在多个无线wifi中切换。假设有两个无线wifi，一个是公司一个是家里。</p>
+
+<p><code class="highlighter-rouge">/etc/network/interfaces</code>中添加如下配置：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>auto wlan0
+allow-hotplug wlan0
+iface wlan0 inet manual
+wpa-conf /etc/wpa_supplicant/wpa_supplicant.conf
+
+# work
+iface work inet static
+address 192.168.1.108
+gateway 192.168.1.1
+netmask 255.255.255.0
+
+# home
+iface home inet static
+address 192.168.0.108
+gateway 192.168.0.1
+netmask 255.255.255.0
+</code></pre>
+</div>
+
+<p>修改<code class="highlighter-rouge">/etc/wpa_supplicant/wpa_supplicant.conf</code>如下所示：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
+update_config=1
+
+network={
+    ssid="9527"
+    psk="passwd"
+    priority=5
+    id_str="work"
+}
+
+network={
+    ssid="TP-7-1-402"
+    psk="passwd"
+    priority=4
+    id_str="home"
+}
+</code></pre>
+</div>
+
+<p>重启网络后，树莓派应该可以使用无线网了，但目前还是有个问题，虽然wpa_supplicant声称可以自动重连， 我的实验结果是拔掉再插可以，但是有时候如果无线wifi出现问题， 树莓派并不会自动重连上。</p>
+
+<h4 id="section-3">守护脚本</h4>
+
+<p>上面的问题， 网上也有这个说法， 解决办法是定时用脚本来判断网络，自动重启网络， 如果长时间无法连接， 重启树莓派。脚本在这里可以找到<a href="https://gist.github.com/likebeta/eb5551cd4f4578e91dae#file-net_restart-sh">net_restart.sh</a></p>
+
+<h4 id="section-4">总结</h4>
+
+<p>如果连接网络有问题， ssh无法使用的时候， 就需要给树莓派连上键盘和显示器，显示器的连接需要修改<code class="highlighter-rouge">config.txt</code>。 折腾这到这里基本上可以告一段落了， 虽然废了很多精力遇到不少问题， 总体来说树莓派的资源还是挺多的， 问题通过Google基本都能解决， 上面提到的配置都放在<a href="https://gist.github.com/likebeta/eb5551cd4f4578e91dae">gist</a>上了， 下一节继续折腾。。。</p>
+]]></content:encoded>
+        </item>
+        
+        <item>
+            <title>uwsgi中fork的陷阱</title>
+            <link>/uwsgi-fork-trap.html</link>
+            <pubDate>2015-09-27T00:00:00+08:00</pubDate>
+            <author>likebeta</author>
+            <guid>/uwsgi-fork-trap</guid>
+            <content:encoded><![CDATA[<p>游戏的sdk使用的是 <code class="highlighter-rouge">nginx+uwsgi+web.py</code>， 虽然用了一段时间了， 但是很多细节并没有仔细去推敲。最近要测试游戏端(tcp)的逻辑，用了5000个并发来测试。由于 sdk的日子都打印在一个log文件中， 并发打印的时候无法分辨一个请求处理过程中打印的完整请求，所以想加个标识， 结果引出来一系列的疑问。</p>
+
+<!--more-->
+
+<h4 id="section">请求为何会并发</h4>
+
+<p>由于开发的时候请求很少， 基本上没有看到多个请求的日志交错出现，而并发测试的时候出现了。这个问题很容易， 日志交错要么是异步执行， 要么是并发执行导致的。web.py没有提供异步支持， 那就是并发了。 看配置看到uwsgi配置的是4个worker，这样就好解释了。 但是这里犯了个严重的错误， 想当然的把worker看成worker线程了， ps明明显示的是进程。</p>
+
+<h4 id="section-1">变量的疑惑</h4>
+
+<p>既然是多线程(捂脸), web.ctx及session是类似单例模式，并发的时候这个ctx和session值是多少呢？貌似有问题，但是测试并没问题。经过查看源码发现ctx及session都是使用了ThreadedDict，也就类似TLS，这里不能理解为全局变量。^—^，想明白了，开心， sb的我此时还没有发现是多进程。</p>
+
+<h4 id="section-2">无尽的惨败</h4>
+
+<p>加个标识呗， 小case！ 首先想到的是每个日志前加个<code class="highlighter-rouge">id(web.ctx)</code>表示每个线程的请求。不用我说结果就是并发时候这个值是一样的，当然和初始化打出的log中的不一样， 但是理解的是主线程。</p>
+
+<p>没想明白， 换一种方法吧， 因为web.py中可以添加hook或者processors， 用于在request执行前和执行后进行一些处理工作。可以在初始化的时候在web中添加变量， 然后在每次request执行前后累加这个变量并放入各自的web.ctx中保存(加锁)， 每次打印log的时候从web.ctx中取出打印这个变量,。乍一看起来也是对的， 信心满满的测试，结果4个worker分别在累加， 完全分辨不出来。把这个变量换成新对象比如(time.time())， 随机数等都会出现重，此时已经有点迷茫了。</p>
+
+<p>想了会， 没明白 ， 时间不多， 再换方法。现在想到的是直接打印线程id，改吧改吧再试。 我勒个操了， 4个worker线程id全部一样，并且和主线程id也一样， 尼玛已经接近崩溃。</p>
+
+<p>后面各种修改各种换，都是各种惨败， 已经绝望。</p>
+
+<h4 id="section-3">一丝曙光</h4>
+
+<p>此时已经中午， 吃完午饭再想吧，然后蹲坑。突然想到了fork这个函数，会不会和他有关系， 但我没有调用fork呀， 对， 应该是多进程， 麻痹了。不拉了有点希望了，先去验证验证。</p>
+
+<p>首先加上进程id的打印， 测试发现果然进程id不同， 其实到这里基本上加标识的问题可以解决了， 但是还有疑问，为毛初始化只有一次呢， 哦， fork， 应该和这个有关系， 去查uwsgi的文档，找到<a href="https://uwsgi.atupal.org/zh_CN/latest/RackQuickstart.html#fork">如下描述</a>：</p>
+
+<blockquote>
+  <p>uWSGI is “Perlish” in a way, there is nothing we can do to hide that.
+Most of its choices (starting from “There’s more than one way to do
+it”) came from the Perl world (and more generally from classical UNIX
+sysadmin approaches).</p>
+
+  <p>有时候其他语言/平台上使用这些方法会导致不在意料中的行为发生。</p>
+
+  <p>当你开始学习 uWSGI 的时候一个你可能会面对的”问题”之一就是它的 fork() 使用。</p>
+
+  <p>默认情况下 uWSGI 在第一个 spawned 的进程里加载你的应用，然后在这个进程里面调用 fork() 多次。</p>
+
+  <p>这意味这你的应用被单独加载一次然后被复制。</p>
+
+  <p>虽然这个方法加速了服务器的启动，但有些应用可能会因为这个技术造成一些问题(特别是这些在启动的
+时候初始化数据库连接的，因为连接的文件描述符会在字进程中继承)。</p>
+
+  <p>如果你确定应不应该使用 uWSGI 野蛮的预-fork方式，那就使用 –lazy-apps 选项禁用掉它。 它将会强制你的应用在每个
+worker 里都会完整加载一次。</p>
+</blockquote>
+
+<p>好吧， 修改下试试， 果然初始化了4次， 当然这不是我想要的。</p>
+
+<h4 id="section-4">总结</h4>
+
+<p>到目前我们可以对一些现象进行解释：</p>
+
+<ol>
+  <li>web.py的web.ctx及一些变量实际上是线程相关的，一般情况下上层不用再考虑并发的读取问题。</li>
+  <li>uwsgi可以配置多进程， 默认加载一次， 然后根据配置fork出N份， 初始化代码只会执行一次，fork后相当于有N个子进程和一个父进程， 他们的各种变量环境都一样。</li>
+  <li>POSIX规定一个进程中线程id是唯一的， 进程id在系统中唯一。 这样看来如果是fork产生的进程， 线程id理论上是可以相同的， 不过貌似大部分系统实现的是系统唯一线程id。</li>
+  <li>python中的取得的线程id好像不是真实的， 按照网上说的<a href="http://blog.devork.be/2010/09/finding-linux-thread-id-from-within.html">调用c模块来获取线程id</a>的方法， 我测试得到的线程id和进程id相同。</li>
+</ol>
+
+<h4 id="section-5">疑问</h4>
+
+<p>但目前为止， 只能说猜测， 有几个问题还没得到证实，时间比较紧， 想记下来：</p>
+
+<ol>
+  <li>fork出来的进程是否虚拟地址空间都一样， 变量的地址都一样。</li>
+  <li>fork出来的进程是否线程id可以相同。</li>
+  <li>如果这些进程再创建线程， 线程id会怎样。</li>
+  <li>测试的时候虽然线程id相同， 但是线程名称不同，但是后来再测试却都想通了， 一时复现不了。</li>
+</ol>
+
+<p>后面有时间验证了再来补充， 说不定猜测根本不对， 实际上是别的原因？</p>
+]]></content:encoded>
+        </item>
+        
+        <item>
+            <title>2014年总结</title>
+            <link>/the-2014.html</link>
+            <pubDate>2015-02-26T00:00:00+08:00</pubDate>
+            <author>likebeta</author>
+            <guid>/the-2014</guid>
+            <content:encoded><![CDATA[<p>迟到的总结，原本应该出现在2个月前，想了好多次都没有下笔。说白了对自己不满意，不太好总结，不太敢面对。去年是我的本命年，发生了好多事情，有好的，有坏的，有些大家知道，有些会一辈子烂在肚子里。总体来说这一年太颓废，斗志低迷，进步不够。</p>
+
+<!--more-->
+
+<h4 id="section">关于家人</h4>
+
+<p>除了每个人年龄的增长，父母加深的皱纹和泛白的发梢，家庭来说今年没太大变化。又是一年的叮嘱，热切的期盼，离别时强忍的泪水。。。</p>
+
+<p>一切一切提醒着我，父母的青春不再，最最期盼的就是我们了，没什么事就顺着他们吧。</p>
+
+<h4 id="section-1">关于朋友</h4>
+
+<p>和朋友联系更少了，不是忘记，也不是不想，可能就只是长大了而已</p>
+
+<h4 id="section-2">关于爱情</h4>
+
+<p>没有电影中曲折的剧情，神奇的遭遇，一切都很自然。安安静静，平平淡淡，遇见她，足矣。。。</p>
+
+<h4 id="section-3">关于工作</h4>
+
+<p>4月份换了工作， 依然是棋牌游戏。</p>
+
+<p>工作要求接触了Python，Twisted和Stackless，这些或许是最大的收获。</p>
+
+<h4 id="section-4">关于生活</h4>
+
+<p>生活上今年变化挺大的。本命年说不好有什么不同，不过总觉得是个分水岭。</p>
+
+<p>这一年小伙伴们有的离去，有的分开，各自生活，或许今年变化会更大，终究各自散天涯。</p>
+
+<p>偶尔会做点饭，不好吃，熟了就行。</p>
+
+<h4 id="section-5">关于青春</h4>
+
+<p>颓废，迷茫，浮躁。。。</p>
+
+<h4 id="section-6">关于健康</h4>
+
+<p>长胖了，肚子上出现肥肉，体检结石不见了。自从换了工作，基本上没有运动了，身体每况愈下，时常有头晕乏力的感觉。</p>
+
+<h4 id="section-7">关于游玩</h4>
+
+<p>4月份公司去参观了爱斐堡酒庄，游了桃源仙谷，爬了观峰台。</p>
+
+<p>中秋节几个小伙伴去了丰宁坝上，虽然没看到想象中得草原，但是还挺不错的。</p>
+
+<h4 id="section-8">关于读书</h4>
+
+<p>书也读了几本，没有什么印象深刻的，太浮躁</p>
+
+<h4 id="section-9">关于北京</h4>
+
+<p>讨厌却不忍离去</p>
+
+<h4 id="section-10">关于计划</h4>
+
+<ul>
+  <li>运动：身体是需要运动，精神上也需要，感觉运动和意志力有很大关系</li>
+  <li>看书：读书学习，修正心态</li>
+  <li>编程：深入学习，完整开发一个联网手游</li>
+  <li>成长：遇见她让我知道自己很不成熟，很多事情需要学习</li>
+  <li>理财：财政一塌糊涂，该想想钱的事了</li>
+</ul>
+]]></content:encoded>
+        </item>
+        
+        <item>
+            <title>Python引用中的坑</title>
+            <link>/python-reference.html</link>
+            <pubDate>2014-12-29T00:00:00+08:00</pubDate>
+            <author>likebeta</author>
+            <guid>/python-reference</guid>
+            <content:encoded><![CDATA[<p>早就知道，python中万物皆对象，参数的传递都是”对象引用”的传递，这个和c++中值传递和参数传递都不一样，与两者的结合体有点神似。 c++中分为指针传递(含引用)和值传递，传递方式可以指定; python中分为可变对象传递和不可变对象传递，传递方式不可指定。自从转向python后，已经踏了3次引用的大坑。</p>
+
+<!--more-->
+
+<h4 id="section">第一次</h4>
+
+<p>当时场景是这样的，我们有个config类用于读取并缓存redis中的配置，config本身是封装了一个dict，每10秒清空一次，访问时如果命中就直接返回cache，否则读取redis缓存并返回。有个特殊处理，我在读取配置后修改了返回值，而返回值本身是config的某项的引用，这样就造成下一个玩家取得的配置是上个玩家的。但是这个bug测试没有发现，线上才发现，因为测试的时候基本上第二次请求这个配置的时候都超过了10秒。这个bug是另外一个同事帮忙找出来的，所以后面我对修改返回值都特别的小心。</p>
+
+<h4 id="section-1">第二次</h4>
+
+<p>这一次的问题是游戏结束，发送结算消息，由于有些信息是共有的，所以就创建了一个message初始化了相关共有信息， 然后针对各个玩家发送不同的信息，其实就是个for循环，在message中填充各自的消息，一般情况下应该是没有问题的，但是如果某项信息是可选的，上一个玩家A填充了这个信息，而下一个玩家B不需要填充这个信息，这个时候B却错误的拥有了这个信息。</p>
+
+<h4 id="section-2">再次</h4>
+
+<p>时隔N久，又栽在它的手里。但是四川麻将要添加定缺和换三张功能，所以修改了下算法，随手修改了两处看起来不太优雅的代码，噩梦开始了，妈妈的，打牌中会多出很多牌，场面极其淫乱，哦， sorry，是凌乱…混乱。我是对着代码看了N+1次也没有发现哪个修改会造成这种问题，实在没办法了，打印终极log。</p>
+
+<p>好了，混乱的场面又出现了，看了下log：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>18066:12-29 15:47:05.443175 -D 280364104 before setPeng [[0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0]]
+18067:12-29 15:47:05.443454 -D 280364104 after setPeng [[3, 0], [3, 0], [3, 0], [3, 0], [3, 0], [3, 0], [3, 0], [3, 0], [3, 0]]
+</code></pre>
+</div>
+
+<p>好像不太对了，一次设置修改了所有的值，联想下前面的改动，尼玛，肯定是应用的问题。下面打开python做实验看看。</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>Python 2.7.8 (a980ebb26592ed26706cd33a4e05eb45b5d3ea09, Sep 24 2014, 00:40:40)
+[PyPy 2.4.0 with GCC 4.4.7 20120313 (Red Hat 4.4.7-4)] on linux2
+Type "help", "copyright", "credits" or "license" for more information.
+&gt;&gt;&gt;&gt; a = [[0,0] for i in range(9)]
+&gt;&gt;&gt;&gt; a
+[[0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0]]
+&gt;&gt;&gt;&gt; b = [[0,0]] * 9
+&gt;&gt;&gt;&gt; b
+[[0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0]]
+&gt;&gt;&gt;&gt; a[0][0] = 1
+&gt;&gt;&gt;&gt; a
+[[1, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0]]
+&gt;&gt;&gt;&gt; b[0][0] = 1
+&gt;&gt;&gt;&gt; b
+[[1, 0], [1, 0], [1, 0], [1, 0], [1, 0], [1, 0], [1, 0], [1, 0], [1, 0]]
+&gt;&gt;&gt;&gt; print id(a[0]), id(a[1])
+140486007588960 140486007588984
+&gt;&gt;&gt;&gt; print id(b[0]), id(b[1])
+140486007612216 140486007612216
+</code></pre>
+</div>
+
+<p>但是就是强迫症修改了 <code class="highlighter-rouge">[[0,0] for i in range(9)]</code> 为 <code class="highlighter-rouge">[[0,0]] * 9</code>。</p>
+
+<h4 id="section-3">教训</h4>
+
+<p>python很简单，使用中很灵活，但是底层其实还有好多东西需要了解，内部的一些机制还是需要细心动手去弄明白，编程中要时刻提醒自己。有几篇文章大家没事也可以看看，加深下理解：</p>
+
+<ol>
+  <li><a href="http://python-china.org/topic/738">Python FAQ : 参数传递</a></li>
+  <li><a href="http://my.oschina.net/leejun2005/blog/145911">python基础（5）：深入理解 python 中的赋值、引用、拷贝、作用域</a></li>
+</ol>
+
+]]></content:encoded>
+        </item>
+        
+        <item>
+            <title>Python import 测试</title>
+            <link>/python-import-test.html</link>
+            <pubDate>2014-10-21T00:00:00+08:00</pubDate>
+            <author>likebeta</author>
+            <guid>/python-import-test</guid>
+            <content:encoded><![CDATA[<p>成千上万的package和module是python最强大得威力，最近在使用python的import时有点晕，做了个小的test想弄清楚各种import的不同之处， 下面是我的一个小实验，看来python的基础只是不扎实呀-_-!</p>
+
+<!--more-->
+
+<h4 id="section">目录结构</h4>
+<pre>
+foo/
+├── bar/
+|   ├── __init__.py
+|   └── main.py
+├── case.py
+├── case1.py
+├── case2.py
+├── case3.py
+└── case4.py
+</pre>
+
+<h4 id="section-1">测试代码</h4>
+
+<script src="https://gist.github.com/likebeta/f2b38faef4b7fb1e9ae0.js"></script>
+
+<h4 id="section-2">运行结果</h4>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>[mj@model_3 foo]$ python case.py
+case.py
+/home/work/foo/bar/__init__.py
+{'bar': &lt;module 'bar' from '/home/work/foo/bar/__init__.py'&gt;, '__builtins__': &lt;module '__builtin__' (built-in)&gt;, '__file__': 'case.py', '__package__': None, '__name__': '__main__', '__doc__': None}
+bar_init
+</code></pre>
+</div>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>[mj@model_3 foo]$ python case1.py
+case1.py
+/home/work/foo/bar/__init__.pyc
+/home/work/foo/bar/main.py
+{'bar': &lt;module 'bar' from '/home/work/foo/bar/__init__.pyc'&gt;, '__builtins__': &lt;module '__builtin__' (built-in)&gt;, '__file__': 'case1.py', '__package__': None, '__name__': '__main__', '__doc__': None}
+bar_init
+bar_main
+</code></pre>
+</div>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>[mj@model_3 foo]$ python case2.py
+case2.py
+/home/work/foo/bar/__init__.pyc
+{'bar_init': &lt;function bar_init at 0x7f88de5f35f0&gt;, '__builtins__': &lt;module '__builtin__' (built-in)&gt;, '__file__': 'case2.py', '__package__': None, '__name__': '__main__', '__doc__': None}
+bar_init
+Traceback (most recent call last):
+  File "case2.py", line 11, in &lt;module&gt;
+    main.bar_main()
+NameError: name 'main' is not defined
+</code></pre>
+</div>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>[mj@model_3 foo]$ python case3.py
+case3.py
+/home/work/foo/bar/__init__.pyc
+/home/work/foo/bar/main.pyc
+{'__builtins__': &lt;module '__builtin__' (built-in)&gt;, '__file__': 'case3.py', '__package__': None, '__name__': '__main__', 'main': &lt;module 'bar.main' from '/home/work/foo/bar/main.pyc'&gt;, '__doc__': None}
+bar_main
+Traceback (most recent call last):
+  File "case3.py", line 11, in &lt;module&gt;
+    bar_init()
+NameError: name 'bar_init' is not defined
+</code></pre>
+</div>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>[mj@model_3 foo]$ python case4.py
+case4.py
+/home/work/foo/bar/__init__.pyc
+/home/work/foo/bar/main.pyc
+{'bar_main': &lt;function bar_main at 0x7f336e6b2230&gt;, '__builtins__': &lt;module '__builtin__' (built-in)&gt;, '__file__': 'case4.py', '__package__': None, '__name__': '__main__', '__doc__': None}
+bar_main
+Traceback (most recent call last):
+  File "case4.py", line 11, in &lt;module&gt;
+    bar_init()
+NameError: name 'bar_init' is not defined
+</code></pre>
+</div>
+
+]]></content:encoded>
+        </item>
+        
+        <item>
+            <title>CentOS开机卡在进度条的解决方法</title>
+            <link>/centos-die-on-boot.html</link>
+            <pubDate>2014-10-16T00:00:00+08:00</pubDate>
+            <author>likebeta</author>
+            <guid>/centos-die-on-boot</guid>
+            <content:encoded><![CDATA[<p>好久没更新了，换工作有一只都很忙。今天在虚拟机中同时开了windows 7 和 centos 后，centos 莫名其妙的开始在进度条， google之。</p>
+
+<h4 id="bootgrubmenulst">还原/boot/grub/menu.lst</h4>
+
+<p>网上说可能是/boot/grub/menu.lst中的信息丢失，还原就好。进入grub后操作如下：</p>
+
+<!--more-->
+
+<blockquote>
+  <p>grub&gt;root (sda1)  按[Enter]    // 这是linux所在的分区符号(一般情况下是在sda1分区上)<br />
+grub&gt;kernel /vmlinuz-2.6.32-358.el5  按[Enter]    // 加载内核(一定要输入原内核版本号，可按[Tab]键补全)<br />
+grub&gt;initrd /initrd-2.6.32-358.el5.img  按[Enter]    // 初始化linux镜像<br />
+grub&gt;boot</p>
+</blockquote>
+
+<p>不是这个问题，继续查找。</p>
+
+<h4 id="section">开机启动软件异常</h4>
+
+<p>找到几个和我的情况差不多综合后解决了问题， 操作如下：</p>
+
+<blockquote>
+  <ol>
+    <li>进入grub</li>
+    <li>选择centos输入<code class="highlighter-rouge">e</code>进行编辑，选择<code class="highlighter-rouge">kernel</code>行输入<code class="highlighter-rouge">e</code>进行编辑，去掉命令后面的quiet，<code class="highlighter-rouge">enter</code>确认</li>
+    <li>输入<code class="highlighter-rouge">b</code>启动</li>
+    <li>卡住后，按<code class="highlighter-rouge">F5</code>切换到文字界面， 查看卡在哪里(卡在uwsgi开机启动)</li>
+    <li>重启，再次到<code class="highlighter-rouge">kernel</code>行编辑， quiet后面加上single, 进入单人模式</li>
+    <li><code class="highlighter-rouge">chkconfig</code>关闭uwsgi开机启动</li>
+    <li><code class="highlighter-rouge">init 0</code> 重启</li>
+  </ol>
+</blockquote>
+
+<p>问题解决了，但是为啥会卡在uwsgi呢?</p>
+]]></content:encoded>
+        </item>
+        
+        <item>
+            <title>Ubuntu One命令行工具</title>
+            <link>/ubuntuone-command-line.html</link>
+            <pubDate>2014-01-11T00:00:00+08:00</pubDate>
+            <author>likebeta</author>
+            <guid>/ubuntuone-command-line</guid>
+            <content:encoded><![CDATA[<p>前段时间翻译了<a href="http://blog.ixxoo.me/argparse.html">Argparse简易教程</a>，刚学python，业余时间做了个<a href="https://one.ubuntu.com/referrals/referee/1698584/">Ubuntu One</a>的命令行工具练下手，现在基本上可以使用了，有很多地方没有优化处理，大家可以自己修改下，源码在<a href="https://github.com/likebeta/ubuntuone_uploader">ubuntuone_uploader</a>，下面说说一些用法。</p>
+
+<!--more-->
+
+<h4 id="section">安装</h4>
+
+<p>脚本依赖<code class="highlighter-rouge">oauth2</code>, ubuntu 下可以 <code class="highlighter-rouge">sudo apt-get install python-oauth2</code> 安装。</p>
+
+<div class="language-sh highlighter-rouge"><pre class="highlight"><code>git clone https://github.com/likebeta/ubuntuone_uploader.git
+<span class="nb">cd </span>ubuntuone_uploader
+chmod +x ubuntuone_uploader.py
+</code></pre>
+</div>
+
+<h4 id="section-1">帮助</h4>
+
+<p>使用<code class="highlighter-rouge">-h</code>查看命令参数：</p>
+
+<div class="language-sh highlighter-rouge"><pre class="highlight"><code><span class="gp">king@ubuntu:~/ubuntuone_uploader$ </span>./ubuntuone_uploader.py -h
+usage: ubuntuone_uploader.py <span class="o">[</span>-h] <span class="o">[</span>-v]
+                             
+                             <span class="o">{</span>auth,quota,list,download,upload,delete,mkdir,move,copy,share<span class="o">}</span>
+                             ...
+
+It is a <span class="nb">command</span>-line tool to operate ubuntu one
+
+optional arguments:
+  -h, --help            show this <span class="nb">help </span>message and <span class="nb">exit</span>
+  -v, --version         show program<span class="s1">'s version number and exit
+
+sub-commands:
+  {auth,quota,list,download,upload,delete,mkdir,move,copy,share}
+    auth                authorize to access your account
+    quota               quota info
+    list                list file of the directory
+    download            download file from ubuntu one and output to screen
+    upload              upload file to ubuntu one
+    delete              delete file from ubuntu one
+    mkdir               create directory
+    move                move file
+    copy                copy file
+    share               share or cancel share file,list share file
+</span></code></pre>
+</div>
+
+<p>参看子命令<code class="highlighter-rouge">upload</code>使用方法：</p>
+
+<div class="language-sh highlighter-rouge"><pre class="highlight"><code><span class="gp">king@ubuntu:~/ubuntuone_uploader$ </span>./ubuntuone_uploader.py upload -h
+usage: ubuntuone_uploader.py upload <span class="o">[</span>-h] <span class="o">[</span>-r remote_path] local_path
+
+positional arguments:
+  local_path      which to upload
+
+optional arguments:
+  -h, --help      show this <span class="nb">help </span>message and <span class="nb">exit</span>
+  -r remote_path  where to save
+</code></pre>
+</div>
+
+<p>详细用法说明参看<a href="https://github.com/likebeta/ubuntuone_uploader">ubuntuone_uploader</a>，Ubuntu One中的文件共享后可以直链访问(类似早期注册的Dropbox用户的public文件夹)，有需要的可以使用我的推荐链接注册，我可以得到500M空间，邀请链接是<a href="https://one.ubuntu.com/referrals/referee/1698584/">Ubuntu One</a>和<a href="http://db.tt/jacpdIw">Dropbox</a>。</p>
+
+]]></content:encoded>
+        </item>
+        
+        <item>
+            <title>ubuntu下samba配置</title>
+            <link>/samba.html</link>
+            <pubDate>2014-01-09T00:00:00+08:00</pubDate>
+            <author>likebeta</author>
+            <guid>/samba</guid>
+            <content:encoded><![CDATA[<p>年底2个月开发移动联机游戏，此次使用新的后台框架：python和c++的组合。交互协议使用protobuf，数据库是mysql，缓存是memcache(后期会缓存redis)，lua来处理配置，日志用到了log4cplus。</p>
+
+<p>这次的后台系统运行在linux下，开发还是使用vs，每次修改完代码，都去linux下make。本来想有ftp，挺麻烦的，最后发现了samba，下面记录下配置。</p>
+
+<!--more-->
+
+<h4 id="section">简介</h4>
+
+<p>SMB（Server Messages Block，信息服务块）是一种在局域网上共享文件和打印机的一种通信协议，它为局域网内的不同计算机之间提供文件及打印机等资源的共享服务。SMB协议是客户机/服务器型协议，客户机通过该协议可以访问服务器上的共享文件系统、打印机及其他资源。通过设置“NetBIOS over TCP/IP”使得Samba不但能与局域网络主机分享资源，还能与全世界的电脑分享资源。</p>
+
+<h4 id="section-1">安装</h4>
+
+<p>首先安装samba：</p>
+
+<div class="language-sh highlighter-rouge"><pre class="highlight"><code>sudo apt-get install samba
+sudo apt-get install smbfs
+</code></pre>
+</div>
+
+<h4 id="section-2">配置</h4>
+
+<p>创建共享目录：/data</p>
+
+<div class="language-sh highlighter-rouge"><pre class="highlight"><code><span class="nb">cd</span> /
+sudo mkdir data
+chmod 777 data
+</code></pre>
+</div>
+
+<p>修改配置文件/etc/samba/smb.conf，搜索<code class="highlighter-rouge">; security = user</code>，替换为下面：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>security = user
+username map = /etc/samba/smbusers
+</code></pre>
+</div>
+
+<p>最下面增加:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>[data]
+comment = data
+path = /data
+public = yes 
+writable = true
+valid users = king
+create mask = 0664
+directory mask = 0775
+force user = king
+force group = king
+available = yes
+browseable = yes
+</code></pre>
+</div>
+
+<p>添加用户，king是我的账号，如果是其他账号，可以自己创建：</p>
+
+<div class="language-sh highlighter-rouge"><pre class="highlight"><code>sudo smbpassed -a king  <span class="c">#添加king，并设置密码</span>
+sudo vi /etc/samba/smbusers <span class="c">#创建sambausers，并修改为king = "king"</span>
+</code></pre>
+</div>
+
+<p>测试并重新启动：</p>
+
+<div class="language-sh highlighter-rouge"><pre class="highlight"><code>sudo testparam
+sudo /etc/init.d/samba restart
+</code></pre>
+</div>
+
+<h4 id="section-3">使用</h4>
+
+<p>windows下右键 我的电脑 -&gt; 映射网络驱动器 -&gt; 文件夹，选择映射的驱动器，输入<code class="highlighter-rouge">\\你的ip\data</code>， 点完成，然后输入用户名密码就行了。这时候就可以访问samba共享的目录data了。</p>
+
+<h4 id="section-4">问题</h4>
+
+<p>由于项目比较分散，最后发现samba下N多的配置项，够凌乱，开始我忍了。直到后来，在vs下开发，很多时候想查看一些库的定义，由于没有包含进来所以找不到定义，最后想到使用ln来创建软连接，这样可以减少samba下的共享文件夹的个数。</p>
+
+<p>在网上搜索了下，需要设置添加下面三行：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>wide links = yes  
+follow symlinks = yes  
+unix extensions  = no  
+</code></pre>
+</div>
+
+<p>好了，这下可以在映射的驱动器中看到ln的目录了，但是访问的时候提示没有权限。查看了samba的日志提示，好多类似下面的提示：</p>
+
+<blockquote>
+  <p>[2014/01/09 13:37:53.659863,  0] param/loadparm.c:10344(widelinks_warning)<br />
+  Share ‘data’ has wide links and unix extensions enabled. These parameters are incompatible. Wide links will be disabled for this share</p>
+</blockquote>
+
+<p>google了N次，找到一篇文章<a href="https://bbs.archlinux.org/viewtopic.php?id=92183">Samba and symlinks</a>， 原来是我填写错了，<code class="highlighter-rouge">unix extensions  = no </code> 必须要放在 <code class="highlighter-rouge">[global]</code>下，我直接放在了<code class="highlighter-rouge">[data]</code>下，问题解决，samba还有好多高级用法以后再折腾。</p>
+
+<p>扩展阅读：</p>
+
+<ul>
+  <li><a href="http://en.wikipedia.org/wiki/Samba">维基百科</a></li>
+  <li><a href="http://www.samba.org/">samba官网</a></li>
+  <li>
+    <p><a href="http://os.51cto.com/art/200512/12843.htm">专题：Samba服务器安装配置全攻略</a></p>
+
+  </li>
+</ul>
+]]></content:encoded>
+        </item>
+        
+    </channel>
+</rss>

@@ -1,0 +1,194 @@
+<!--
+#include <stdio.h>
+void main()
+{
+    double world;
+    unsigned letter;
+    short stay;
+    long memories;
+    printf("I miss you.\n");
+}
+-->
+<!doctype html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <meta name="author" content="likebeta" />
+    <meta name="keywords" content="" />
+    <meta name="description" content="" />
+    <link rel="shortcut icon" href="/media/img/favicon.ico" />
+    <link rel="alternate" title="likebeta" type="application/atom+xml" href="http://feed.ixxoo.me" />
+    <link rel="stylesheet" type="text/css" href="/media/css/style.css" />
+    <link rel="stylesheet" href="/media/css/highlight.css" />
+    <title>小型web服务器Mongoose试用</title>
+    <!--[if lt IE 9]>
+    <script src="//cdn.bootcss.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+    <![endif]-->
+    <script src="//cdn.bootcss.com/jquery/1.7.1/jquery.min.js"></script>
+    <script type="text/javascript" src="/media/js/base.js"></script>
+  </head>
+  <body>
+    <div id="clickload">假装异步加载中...</div>
+    <div id="wrap">
+                <div id="header">
+            <header id="blog_title">
+                <h1><a href="/">likebeta's Blog</a></h1>
+            </header>
+            <nav id="menu">
+                <ul class="header-nav">
+                    <li><a href="http://app.ixxoo.me" target="_blank">App</a></li>
+                    <li><a href="https://github.com/likebeta" target="_blank">Github</a></li>
+                    <li><a href="/read">Read</a></li>
+                    <li><a href="/photo">Photo</a></li>
+                    <li><a href="/about">About</a></li>
+                    <li><a href="http://feed.ixxoo.me" class="menu-rss" target="_blank"></a></li>
+                </ul>
+            </nav>
+            <div class="clear"></div>
+        </div>
+
+                <section id="content">
+            <article class="post">
+             <div class="date">
+              <span class="day">25</span>
+              <span class="month">Dec</span>
+              <span class="year">2013</span>
+             </div>
+             <header>
+              <h2><a href="/mongoose.html" title="小型web服务器Mongoose试用">小型web服务器Mongoose试用</a></h2>
+             </header>
+             <div class="con"><h4 id="section">缘由</h4>
+
+<p>早先PC端有几个服务器由于需求牵扯到了一些HTTP请求，当时使用了Mongoose，当时没怎么接触，前段时间客户端做加速器又准备使用个小型web server，选定的也是这个，处于兴趣，前N个星期六抽了半天看了下相关文档，记录下（我承认我TM懒）。</p>
+
+<!--more-->
+
+<h4 id="section-1">简介</h4>
+
+<p>Mongoose是一个非常小巧的web服务器，支持C/C++、C#、Python、Ruby、Lua语言。它实现了对Socket的封装，提供了简洁的开发接口，性能也很好，主要用在嵌入式开发平台，主页是<a href="http://cesanta.com/">http://cesanta.com/</a></p>
+
+<p>Mongoose可以编译成so，或者直接上源文件（就两个文件，适合携带），主要有以下特性：</p>
+
+<ol>
+  <li>可以运行在Windows，Mac，Unix/Linux，iPhone, Android和其他平台</li>
+  <li>脚本支持Lua，数据库支持SQLite，扩展性不错(PHP也能用)</li>
+  <li>支持CGI，SSL，SSI，Digest(MD5)认证，Websocket，WebDAV</li>
+  <li>支持断点续传，URL rewrite，文件黑名单，基于IP的ACL</li>
+  <li>干净简单的API，只有mongoose.h和mongoose.c</li>
+  <li>大量的实例</li>
+</ol>
+
+<h4 id="section-2">实例</h4>
+
+<p>在监听1125端口，如果请求的是<code class="highlighter-rouge">hello.html</code>就返回这个网页，其他情况返回请求的目录，代码如下：</p>
+
+<div class="language-cpp highlighter-rouge"><pre class="highlight"><code><span class="cp">#include &lt;iostream&gt;
+#include &lt;string.h&gt;
+</span><span class="k">using</span> <span class="k">namespace</span> <span class="n">std</span><span class="p">;</span>
+<span class="cp">#include "mongoose.h"
+</span>
+<span class="k">static</span> <span class="kt">int</span> <span class="nf">event_handle</span><span class="p">(</span><span class="k">struct</span> <span class="n">mg_event</span><span class="o">*</span> <span class="n">event</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">event</span><span class="o">-&gt;</span><span class="n">type</span> <span class="o">==</span> <span class="n">MG_REQUEST_BEGIN</span><span class="p">)</span>
+  <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span><span class="n">strcmp</span><span class="p">(</span><span class="n">event</span><span class="o">-&gt;</span><span class="n">request_info</span><span class="o">-&gt;</span><span class="n">uri</span><span class="p">,</span><span class="s">"/hello.html"</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span>
+      <span class="p">{</span>
+        <span class="kt">char</span> <span class="n">content</span><span class="p">[</span><span class="mi">100</span><span class="p">];</span>
+
+        <span class="c1">// Prepare the message we're going to send
+</span>        <span class="kt">int</span> <span class="n">content_length</span> <span class="o">=</span> <span class="n">snprintf</span><span class="p">(</span><span class="n">content</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">content</span><span class="p">),</span>
+                <span class="s">"Hello from mongoose! Requested: [%s] [%s]"</span><span class="p">,</span>
+                <span class="n">event</span><span class="o">-&gt;</span><span class="n">request_info</span><span class="o">-&gt;</span><span class="n">request_method</span><span class="p">,</span> <span class="n">event</span><span class="o">-&gt;</span><span class="n">request_info</span><span class="o">-&gt;</span><span class="n">uri</span><span class="p">);</span>
+
+        <span class="c1">// Send HTTP reply to the client
+</span>         <span class="n">mg_printf</span><span class="p">(</span><span class="n">event</span><span class="o">-&gt;</span><span class="n">conn</span><span class="p">,</span>
+             <span class="s">"HTTP/1.1 200 OK</span><span class="se">\r\n</span><span class="s">"</span>
+             <span class="s">"Content-Type: text/plain</span><span class="se">\r\n</span><span class="s">"</span>
+             <span class="s">"Content-Length: %d</span><span class="se">\r\n</span><span class="s">"</span>        <span class="c1">// Always set Content-Length
+</span>             <span class="s">"</span><span class="se">\r\n</span><span class="s">"</span>
+             <span class="s">"%s"</span><span class="p">,</span>
+            <span class="n">content_length</span><span class="p">,</span> <span class="n">content</span><span class="p">);</span>
+
+         <span class="c1">// Returning non-zero tells mongoose that our function has replied to
+</span>         <span class="k">return</span> <span class="mi">1</span><span class="p">;</span>
+      <span class="p">}</span>
+  <span class="p">}</span>
+
+  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">int</span> <span class="nf">main</span><span class="p">()</span>
+<span class="p">{</span>
+    <span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">options</span><span class="p">[]</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s">"listening_ports"</span><span class="p">,</span> <span class="s">"1125"</span><span class="p">,</span>
+        <span class="s">"document_root"</span><span class="p">,</span> <span class="s">"wwwroot"</span><span class="p">,</span>
+        <span class="nb">NULL</span><span class="p">};</span>
+    <span class="k">struct</span> <span class="n">mg_context</span><span class="o">*</span> <span class="n">ctx</span> <span class="o">=</span> <span class="n">mg_start</span><span class="p">(</span><span class="n">options</span><span class="p">,</span><span class="o">&amp;</span><span class="n">event_handle</span><span class="p">,</span><span class="nb">NULL</span><span class="p">);</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">ctx</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">"start failed</span><span class="se">\n</span><span class="s">"</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="k">else</span>
+    <span class="p">{</span>
+        <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">"start success</span><span class="se">\n</span><span class="s">"</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="n">getchar</span><span class="p">();</span>
+
+    <span class="n">mg_stop</span><span class="p">(</span><span class="n">ctx</span><span class="p">);</span>
+    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre>
+</div>
+
+<h4 id="section-3">总结</h4>
+
+<p>总体来说Mongoose很让人惊喜，小巧强大，使用简便，还支持URL rewrite和正则表达式，并且可以通过Lua来扩展。下载的源码中有大部分的使用示例，官方文档也很齐全。</p>
+
+<p>下载：<a href="http://cesanta.com/index.html#downloads">http://cesanta.com/index.html#downloads</a><br />
+文档：<a href="http://cesanta.com/docs.html">http://cesanta.com/docs.html</a></p>
+</div>
+             <div class="prev_and_next">
+                
+                <div><strong>上一篇： <a href="/singleton-pattern.html" title="设计模式 - 单例模式">设计模式 - 单例模式</a></strong></div>
+                
+                
+                <div><strong>上一篇： <a href="/argparse.html" title="Argparse简易教程">Argparse简易教程</a></strong></div>
+                
+             </div>
+             <div class="postunder"><div id="comments">
+        <div id="disqus_thread"></div>
+    <script type="text/javascript">
+        /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+        var disqus_shortname = 'ixxoo'; // required: replace example with your forum shortname
+
+        /* * * DON'T EDIT BELOW THIS LINE * * */
+        (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    <a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+
+</div></div>
+            </article>
+        </section>
+        <div class="clear"></div>
+
+                <footer id="footer">
+            <div class="foot">
+                <a id="gotop" href="javascript:void(0);" onclick="return false;">TOP</a>
+                <div id="copyright">Copyright &copy; 2016 <a href="https://www.ixxoo.me" target="_blank">likebeta</a>, All Rights Reserved, Power by <a href="https://github.com/likebeta" target="_blank">Github Pages</a> and <a href="https://github.com/mojombo/jekyll" target="_blank">Jekyll</a></div>
+            </div>
+            <div id="statistics" style="display:none">
+    <script type="text/javascript" src="//s20.cnzz.com/stat.php?id=5221832&web_id=5221832"></script>
+</div>
+        </footer>
+
+    </div>
+  <script type="text/javascript" color="255,0,0" opacity="0.3" count="99" src="/media/js/canvas-nest.min.js"></script>
+  </body>
+</html>

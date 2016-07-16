@@ -1,0 +1,183 @@
+<!--
+#include <stdio.h>
+void main()
+{
+    double world;
+    unsigned letter;
+    short stay;
+    long memories;
+    printf("I miss you.\n");
+}
+-->
+<!doctype html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <meta name="author" content="likebeta" />
+    <meta name="keywords" content="" />
+    <meta name="description" content="" />
+    <link rel="shortcut icon" href="/media/img/favicon.ico" />
+    <link rel="alternate" title="likebeta" type="application/atom+xml" href="http://feed.ixxoo.me" />
+    <link rel="stylesheet" type="text/css" href="/media/css/style.css" />
+    <link rel="stylesheet" href="/media/css/highlight.css" />
+    <title>Python import 测试</title>
+    <!--[if lt IE 9]>
+    <script src="//cdn.bootcss.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+    <![endif]-->
+    <script src="//cdn.bootcss.com/jquery/1.7.1/jquery.min.js"></script>
+    <script type="text/javascript" src="/media/js/base.js"></script>
+  </head>
+  <body>
+    <div id="clickload">假装异步加载中...</div>
+    <div id="wrap">
+                <div id="header">
+            <header id="blog_title">
+                <h1><a href="/">likebeta's Blog</a></h1>
+            </header>
+            <nav id="menu">
+                <ul class="header-nav">
+                    <li><a href="http://app.ixxoo.me" target="_blank">App</a></li>
+                    <li><a href="https://github.com/likebeta" target="_blank">Github</a></li>
+                    <li><a href="/read">Read</a></li>
+                    <li><a href="/photo">Photo</a></li>
+                    <li><a href="/about">About</a></li>
+                    <li><a href="http://feed.ixxoo.me" class="menu-rss" target="_blank"></a></li>
+                </ul>
+            </nav>
+            <div class="clear"></div>
+        </div>
+
+                <section id="content">
+            <article class="post">
+             <div class="date">
+              <span class="day">21</span>
+              <span class="month">Oct</span>
+              <span class="year">2014</span>
+             </div>
+             <header>
+              <h2><a href="/python-import-test.html" title="Python import 测试">Python import 测试</a></h2>
+             </header>
+             <div class="con"><p>成千上万的package和module是python最强大得威力，最近在使用python的import时有点晕，做了个小的test想弄清楚各种import的不同之处， 下面是我的一个小实验，看来python的基础只是不扎实呀-_-!</p>
+
+<!--more-->
+
+<h4 id="section">目录结构</h4>
+<pre>
+foo/
+├── bar/
+|   ├── __init__.py
+|   └── main.py
+├── case.py
+├── case1.py
+├── case2.py
+├── case3.py
+└── case4.py
+</pre>
+
+<h4 id="section-1">测试代码</h4>
+
+<script src="https://gist.github.com/likebeta/f2b38faef4b7fb1e9ae0.js"></script>
+
+<h4 id="section-2">运行结果</h4>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>[mj@model_3 foo]$ python case.py
+case.py
+/home/work/foo/bar/__init__.py
+{'bar': &lt;module 'bar' from '/home/work/foo/bar/__init__.py'&gt;, '__builtins__': &lt;module '__builtin__' (built-in)&gt;, '__file__': 'case.py', '__package__': None, '__name__': '__main__', '__doc__': None}
+bar_init
+</code></pre>
+</div>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>[mj@model_3 foo]$ python case1.py
+case1.py
+/home/work/foo/bar/__init__.pyc
+/home/work/foo/bar/main.py
+{'bar': &lt;module 'bar' from '/home/work/foo/bar/__init__.pyc'&gt;, '__builtins__': &lt;module '__builtin__' (built-in)&gt;, '__file__': 'case1.py', '__package__': None, '__name__': '__main__', '__doc__': None}
+bar_init
+bar_main
+</code></pre>
+</div>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>[mj@model_3 foo]$ python case2.py
+case2.py
+/home/work/foo/bar/__init__.pyc
+{'bar_init': &lt;function bar_init at 0x7f88de5f35f0&gt;, '__builtins__': &lt;module '__builtin__' (built-in)&gt;, '__file__': 'case2.py', '__package__': None, '__name__': '__main__', '__doc__': None}
+bar_init
+Traceback (most recent call last):
+  File "case2.py", line 11, in &lt;module&gt;
+    main.bar_main()
+NameError: name 'main' is not defined
+</code></pre>
+</div>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>[mj@model_3 foo]$ python case3.py
+case3.py
+/home/work/foo/bar/__init__.pyc
+/home/work/foo/bar/main.pyc
+{'__builtins__': &lt;module '__builtin__' (built-in)&gt;, '__file__': 'case3.py', '__package__': None, '__name__': '__main__', 'main': &lt;module 'bar.main' from '/home/work/foo/bar/main.pyc'&gt;, '__doc__': None}
+bar_main
+Traceback (most recent call last):
+  File "case3.py", line 11, in &lt;module&gt;
+    bar_init()
+NameError: name 'bar_init' is not defined
+</code></pre>
+</div>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>[mj@model_3 foo]$ python case4.py
+case4.py
+/home/work/foo/bar/__init__.pyc
+/home/work/foo/bar/main.pyc
+{'bar_main': &lt;function bar_main at 0x7f336e6b2230&gt;, '__builtins__': &lt;module '__builtin__' (built-in)&gt;, '__file__': 'case4.py', '__package__': None, '__name__': '__main__', '__doc__': None}
+bar_main
+Traceback (most recent call last):
+  File "case4.py", line 11, in &lt;module&gt;
+    bar_init()
+NameError: name 'bar_init' is not defined
+</code></pre>
+</div>
+
+</div>
+             <div class="prev_and_next">
+                
+                <div><strong>上一篇： <a href="/centos-die-on-boot.html" title="CentOS开机卡在进度条的解决方法">CentOS开机卡在进度条的解决方法</a></strong></div>
+                
+                
+                <div><strong>上一篇： <a href="/python-reference.html" title="Python引用中的坑">Python引用中的坑</a></strong></div>
+                
+             </div>
+             <div class="postunder"><div id="comments">
+        <div id="disqus_thread"></div>
+    <script type="text/javascript">
+        /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+        var disqus_shortname = 'ixxoo'; // required: replace example with your forum shortname
+
+        /* * * DON'T EDIT BELOW THIS LINE * * */
+        (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    <a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+
+</div></div>
+            </article>
+        </section>
+        <div class="clear"></div>
+
+                <footer id="footer">
+            <div class="foot">
+                <a id="gotop" href="javascript:void(0);" onclick="return false;">TOP</a>
+                <div id="copyright">Copyright &copy; 2016 <a href="https://www.ixxoo.me" target="_blank">likebeta</a>, All Rights Reserved, Power by <a href="https://github.com/likebeta" target="_blank">Github Pages</a> and <a href="https://github.com/mojombo/jekyll" target="_blank">Jekyll</a></div>
+            </div>
+            <div id="statistics" style="display:none">
+    <script type="text/javascript" src="//s20.cnzz.com/stat.php?id=5221832&web_id=5221832"></script>
+</div>
+        </footer>
+
+    </div>
+  <script type="text/javascript" color="255,0,0" opacity="0.3" count="99" src="/media/js/canvas-nest.min.js"></script>
+  </body>
+</html>

@@ -1,0 +1,138 @@
+<!--
+#include <stdio.h>
+void main()
+{
+    double world;
+    unsigned letter;
+    short stay;
+    long memories;
+    printf("I miss you.\n");
+}
+-->
+<!doctype html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <meta name="author" content="likebeta" />
+    <meta name="keywords" content="" />
+    <meta name="description" content="" />
+    <link rel="shortcut icon" href="/media/img/favicon.ico" />
+    <link rel="alternate" title="likebeta" type="application/atom+xml" href="http://feed.ixxoo.me" />
+    <link rel="stylesheet" type="text/css" href="/media/css/style.css" />
+    <link rel="stylesheet" href="/media/css/highlight.css" />
+    <title>CentOS开机卡在进度条的解决方法</title>
+    <!--[if lt IE 9]>
+    <script src="//cdn.bootcss.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+    <![endif]-->
+    <script src="//cdn.bootcss.com/jquery/1.7.1/jquery.min.js"></script>
+    <script type="text/javascript" src="/media/js/base.js"></script>
+  </head>
+  <body>
+    <div id="clickload">假装异步加载中...</div>
+    <div id="wrap">
+                <div id="header">
+            <header id="blog_title">
+                <h1><a href="/">likebeta's Blog</a></h1>
+            </header>
+            <nav id="menu">
+                <ul class="header-nav">
+                    <li><a href="http://app.ixxoo.me" target="_blank">App</a></li>
+                    <li><a href="https://github.com/likebeta" target="_blank">Github</a></li>
+                    <li><a href="/read">Read</a></li>
+                    <li><a href="/photo">Photo</a></li>
+                    <li><a href="/about">About</a></li>
+                    <li><a href="http://feed.ixxoo.me" class="menu-rss" target="_blank"></a></li>
+                </ul>
+            </nav>
+            <div class="clear"></div>
+        </div>
+
+                <section id="content">
+            <article class="post">
+             <div class="date">
+              <span class="day">16</span>
+              <span class="month">Oct</span>
+              <span class="year">2014</span>
+             </div>
+             <header>
+              <h2><a href="/centos-die-on-boot.html" title="CentOS开机卡在进度条的解决方法">CentOS开机卡在进度条的解决方法</a></h2>
+             </header>
+             <div class="con"><p>好久没更新了，换工作有一只都很忙。今天在虚拟机中同时开了windows 7 和 centos 后，centos 莫名其妙的开始在进度条， google之。</p>
+
+<h4 id="bootgrubmenulst">还原/boot/grub/menu.lst</h4>
+
+<p>网上说可能是/boot/grub/menu.lst中的信息丢失，还原就好。进入grub后操作如下：</p>
+
+<!--more-->
+
+<blockquote>
+  <p>grub&gt;root (sda1)  按[Enter]    // 这是linux所在的分区符号(一般情况下是在sda1分区上)<br />
+grub&gt;kernel /vmlinuz-2.6.32-358.el5  按[Enter]    // 加载内核(一定要输入原内核版本号，可按[Tab]键补全)<br />
+grub&gt;initrd /initrd-2.6.32-358.el5.img  按[Enter]    // 初始化linux镜像<br />
+grub&gt;boot</p>
+</blockquote>
+
+<p>不是这个问题，继续查找。</p>
+
+<h4 id="section">开机启动软件异常</h4>
+
+<p>找到几个和我的情况差不多综合后解决了问题， 操作如下：</p>
+
+<blockquote>
+  <ol>
+    <li>进入grub</li>
+    <li>选择centos输入<code class="highlighter-rouge">e</code>进行编辑，选择<code class="highlighter-rouge">kernel</code>行输入<code class="highlighter-rouge">e</code>进行编辑，去掉命令后面的quiet，<code class="highlighter-rouge">enter</code>确认</li>
+    <li>输入<code class="highlighter-rouge">b</code>启动</li>
+    <li>卡住后，按<code class="highlighter-rouge">F5</code>切换到文字界面， 查看卡在哪里(卡在uwsgi开机启动)</li>
+    <li>重启，再次到<code class="highlighter-rouge">kernel</code>行编辑， quiet后面加上single, 进入单人模式</li>
+    <li><code class="highlighter-rouge">chkconfig</code>关闭uwsgi开机启动</li>
+    <li><code class="highlighter-rouge">init 0</code> 重启</li>
+  </ol>
+</blockquote>
+
+<p>问题解决了，但是为啥会卡在uwsgi呢?</p>
+</div>
+             <div class="prev_and_next">
+                
+                <div><strong>上一篇： <a href="/ubuntuone-command-line.html" title="Ubuntu One命令行工具">Ubuntu One命令行工具</a></strong></div>
+                
+                
+                <div><strong>上一篇： <a href="/python-import-test.html" title="Python import 测试">Python import 测试</a></strong></div>
+                
+             </div>
+             <div class="postunder"><div id="comments">
+        <div id="disqus_thread"></div>
+    <script type="text/javascript">
+        /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+        var disqus_shortname = 'ixxoo'; // required: replace example with your forum shortname
+
+        /* * * DON'T EDIT BELOW THIS LINE * * */
+        (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    <a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+
+</div></div>
+            </article>
+        </section>
+        <div class="clear"></div>
+
+                <footer id="footer">
+            <div class="foot">
+                <a id="gotop" href="javascript:void(0);" onclick="return false;">TOP</a>
+                <div id="copyright">Copyright &copy; 2016 <a href="https://www.ixxoo.me" target="_blank">likebeta</a>, All Rights Reserved, Power by <a href="https://github.com/likebeta" target="_blank">Github Pages</a> and <a href="https://github.com/mojombo/jekyll" target="_blank">Jekyll</a></div>
+            </div>
+            <div id="statistics" style="display:none">
+    <script type="text/javascript" src="//s20.cnzz.com/stat.php?id=5221832&web_id=5221832"></script>
+</div>
+        </footer>
+
+    </div>
+  <script type="text/javascript" color="255,0,0" opacity="0.3" count="99" src="/media/js/canvas-nest.min.js"></script>
+  </body>
+</html>
